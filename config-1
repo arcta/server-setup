@@ -1,0 +1,92 @@
+#!/bin/bash
+
+########################################################################
+### create local configuration and login credentials
+########################################################################
+cd ~
+
+echo "#!/bin/bash
+
+GIT_USER_NAME='Repo Owner'
+GIT_USER_EMAIL='repo-owner@the.domain.com'
+GIT_REPO_URL='https://github.com/repo-owner'
+
+DOMAIN='the.domain.com'
+
+CLUSTER='orion'
+### replicas used for load balancer (if any) ###########################
+# CLUSTERIPS=(192.168.1.101 192.168.1.102 192.168.1.103)
+CLUSTERIPS=()
+
+# NODE=$(hostname)
+NODE='betelgeuse'
+NODEID='alpha'
+NODEIP=$(ifconfig | grep 'inet addr:'| grep -v '127.0.0.1' | cut -d: -f2 | awk '{ print $1}')
+
+NODE_MYSQL_HOST=localhost
+NODE_MYSQL_PORT=3306
+
+NODE_MONGO_HOST=127.0.0.1
+NODE_MONGO_PORT=27017
+
+NODE_REDIS_HOST=127.0.0.1
+NODE_REDIS_PORT=6379
+
+NODE_ES_HOST='localhost:9200'
+
+NODE_DOC_ROOT='projects'
+
+NODE_DATABASE='orion'
+NODE_DATAUSER='betelgeuse'
+
+########################################################################
+### projects production deployment framework
+########################################################################
+NODE_PRODUCTION_PORT=4001
+### !!! starting from 4001 [production front-page] ---
+NODE_PROJECT_PORT=4001
+### --- will increment with a new project release !!!
+
+NODE_RSTUDIO_PORT=3838
+NODE_NOTEBOOK_PORT=8888
+NODE_API_PORT=8080
+" > .local.cnf
+
+########################################################################
+### create and save local access credentials
+echo "
+NODE_MYSQL_ROOT_PASS=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+NODE_MYSQL_PASS=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1)
+
+NODE_MONGO_ROOT_PASS=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+NODE_MONGO_PASS=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1)
+
+NODE_REDIS_PASS=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)
+" >> .local.cnf
+
+### add to bashrc ######################################################
+tee -a .bashrc <<EOF
+### set node configuration vars
+. $HOME/.local.cnf
+EOF
+
+chmod 600 .local.cnf
+
+########################################################################
+### add R packages to install
+
+echo "
+########################################################################
+### R CMD BATCH install-packages.R
+########################################################################
+
+### user library (ignore a warning if already exists):
+dir.create(Sys.getenv('R_LIBS_USER'), showWarnings = FALSE, recursive = TRUE)
+
+### install packages:
+install.packages(c('RMySQL','jsonlite','ggplot2'), Sys.getenv('R_LIBS_USER'), repos = 'http://cran.r-project.org')
+install.packages(c('caret','rpart','party','randomForest','cluster'), Sys.getenv('R_LIBS_USER'), repos = 'http://cran.r-project.org')
+
+### shiny server ###
+install.packages('shiny', Sys.getenv('R_LIBS_USER'), repos='http://cran.rstudio.com/')
+" > install-packages.R

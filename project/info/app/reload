@@ -1,0 +1,7 @@
+#!/bin/bash
+
+########################################################################
+### restart projects production web index
+########################################################################
+. $HOME/.local.cnf
+. $HOME/project/reload info $NODE_PRODUCTION_PORT

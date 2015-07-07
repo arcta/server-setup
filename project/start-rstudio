@@ -1,0 +1,24 @@
+#!/bin/bash
+
+########################################################################
+### start projects rstudio web-interface
+########################################################################
+. $HOME/.local.cnf
+
+sudo tee /etc/nginx/upstream/rstudio <<EOF
+    upstream rstudio {
+        server 127.0.0.1:${NODE_RSTUDIO_PORT};
+    }
+EOF
+
+sudo tee /etc/nginx/location/rstudio <<EOF
+        location /rstudio {
+            rewrite ^/rstudio/(.*) /\$1 break;
+            proxy_pass http://rstudio/;
+            include proxy_params;
+        }
+EOF
+
+sudo start shiny-server
+sudo service nginx restart
+echo 'Done'

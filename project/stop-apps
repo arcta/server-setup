@@ -1,0 +1,20 @@
+#!/bin/bash
+
+########################################################################
+### stop all projects nodejs production
+########################################################################
+. $HOME/.local.cnf
+
+LIST=$(ls ~/$NODE_DOC_ROOT)
+for label in ${LIST[*]}
+do
+    if [ -d "$label" ]; then
+        if [ -f "${HOME}/${NODE_DOC_ROOT}/${label}/app/start" ]; then
+            sudo rm /etc/nginx/upstream/$label
+            sudo rm /etc/nginx/location/$label
+        fi
+    fi
+done
+pm2 delete all
+sudo service nginx restart
+echo 'Done'

@@ -1,0 +1,16 @@
+#!/bin/bash
+
+########################################################################
+### stop project nodejs production app
+### parameters: $1 project subdirectory; $2 project port
+########################################################################
+
+if grep '/project$' <<<$(pwd) ; then
+    echo "Run ./stop FROM the project location with NO arguments."
+else
+    sudo rm /etc/nginx/upstream/$1
+    sudo rm /etc/nginx/location/$1 
+
+    pm2 delete $1
+    sudo service nginx restart
+fi

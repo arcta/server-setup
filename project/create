@@ -1,0 +1,108 @@
+#!/bin/bash
+
+########################################################################
+### set up a new project as notebook + rstudio + nodejs production
+### args: $1 progect subdirectory name
+########################################################################
+. ~/.local.cnf
+
+if grep '^[0-9a-zA-Z_\-]*$' <<<$1 ; then
+    if [ -d ~/$NODE_DOC_ROOT/$1 ]; then
+        echo 'Directory exists... aborting.'
+
+    else
+        mkdir ~/$NODE_DOC_ROOT/$1
+        cp ~/project/gitignore ~/$NODE_DOC_ROOT/$1/.gitignore
+
+        ### init notebook ##############################################
+        cp ~/project/README.ipynb ~/$NODE_DOC_ROOT/$1/README.ipynb
+        sed -i "s/NODE_DOC_ROOT/${NODE_DOC_ROOT}/g" ~/$NODE_DOC_ROOT/$1/README.ipynb
+        sed -i "s/PROJECT_LABEL/${1}/g" ~/$NODE_DOC_ROOT/$1/README.ipynb
+        sed -i "s/DOMAIN/${DOMAIN}/g" ~/$NODE_DOC_ROOT/$1/README.ipynb
+
+        ### init rstudio ###############################################
+        cp ~/project/ui.R ~/$NODE_DOC_ROOT/$1/ui.R
+        cp ~/project/server.R ~/$NODE_DOC_ROOT/$1/server.R
+
+        ### init nodejs-express application ########################
+        # cd ~/$NODE_DOC_ROOT/$1/ && express app
+        mkdir ~/$NODE_DOC_ROOT/$1/app
+        cp ~/project/app.js ~/$NODE_DOC_ROOT/$1/app/app.js
+
+        ((last = NODE_PROJECT_PORT + 0))
+        ((next = NODE_PROJECT_PORT + 1))
+
+        tee ~/$NODE_DOC_ROOT/$1/app/start <<EOF
+#!/bin/bash
+
+########################################################################
+### start project nodejs production app
+########################################################################
+. $HOME/project/start $1 $next
+EOF
+
+        tee ~/$NODE_DOC_ROOT/$1/app/stop <<EOF
+#!/bin/bash
+
+########################################################################
+### stop project nodejs app from production
+########################################################################
+. $HOME/project/stop $1 $next
+EOF
+
+        tee ~/$NODE_DOC_ROOT/$1/app/reload <<EOF
+#!/bin/bash
+
+########################################################################
+### reload project nodejs production app
+########################################################################
+. $HOME/project/reload $1 $next
+EOF
+
+        tee ~/$NODE_DOC_ROOT/$1/publish <<EOF
+#!/bin/bash
+
+########################################################################
+### publish notebook to web production as html + pdf
+########################################################################
+. $HOME/project/publish $1 \$1
+EOF
+
+        tee ~/$NODE_DOC_ROOT/$1/convert <<EOF
+#!/bin/bash
+
+########################################################################
+### convert python to notebook OR notebook to markdown
+########################################################################
+. $HOME/project/convert $1 \$1
+EOF
+        . ~/project/app-package-template $1
+        . ~/project/app-config-template $1 $next
+
+        ln -s ~/node_modules ~/$NODE_DOC_ROOT/$1/app/node_modules
+        mkdir ~/$NODE_DOC_ROOT/$1/app/static
+
+        . ~/project/app-index-template $1
+
+        ln -s ~/$NODE_DOC_ROOT/info/app/static/shared-assets ~/$NODE_DOC_ROOT/$1/app/static/shared-assets
+        cp ~/project/favicon.png ~/$NODE_DOC_ROOT/$1/app/static/favicon.png
+        mkdir ~/$NODE_DOC_ROOT/$1/app/static/pdf
+
+        sed -i "s/NODE_PROJECT_PORT=${last}/NODE_PROJECT_PORT=${next}/1" ~/.local.cnf
+
+        ls -l ~/$NODE_DOC_ROOT/$1
+
+        sudo chmod -R 600 ~/$NODE_DOC_ROOT/$1
+        sudo chmod 700 ~/$NODE_DOC_ROOT/$1
+        sudo chmod 700 ~/$NODE_DOC_ROOT/$1/app
+        sudo chmod 700 ~/$NODE_DOC_ROOT/$1/app/static
+        sudo chmod 700 ~/$NODE_DOC_ROOT/$1/app/static/pdf
+        sudo chmod 700 ~/node_modules ~/$NODE_DOC_ROOT/$1/app/node_modules
+        sudo chmod 700 ~/$NODE_DOC_ROOT/$1/app/static/shared-assets
+        sudo chmod 700 ~/$NODE_DOC_ROOT/$1/app/static/shared-assets/css
+
+        echo "Project location: ~/${NODE_DOC_ROOT}/${1}"
+    fi
+else
+    echo 'Please use: alphanumeric undescore dash';
+fi

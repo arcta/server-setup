@@ -1,0 +1,126 @@
+#!/bin/bash
+
+########################################################################
+### install system level dependencies using local configuration
+########################################################################
+cd ~
+. .local.cnf
+
+########################################################################
+### start installation: latest stable releases using PPA
+sudo apt-get update
+sudo apt-get upgrade
+
+### python dev #########################################################
+sudo apt-get install python-pip python-dev python-software-properties
+sudo apt-get install build-essential python-all-dev pkg-config pandoc
+sudo pip install --upgrade virtualenv
+
+### libraries ##########################################################
+sudo apt-get install libssl-dev gfortran make gcc gcc-multilib g++
+sudo apt-get install libpng-dev libfreetype6-dev libatlas-base-dev
+sudo apt-get install texlive-latex-base texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
+sudo apt-get install curl nmap imagemagick
+sudo apt-get install php5-cli php5-gd
+
+### java ###############################################################
+sudo apt-add-repository ppa:webupd8team/java && sudo apt-get update
+sudo apt-get install oracle-java8-installer
+sudo apt-get install oracle-java8-set-default
+
+### mysql ##############################################################
+echo mysql-server-5.6 mysql-server/root_password password $NODE_MYSQL_ROOT_PASS | sudo debconf-set-selections
+echo mysql-server-5.6 mysql-server/root_password_again password $NODE_MYSQL_ROOT_PASS | sudo debconf-set-selections
+sudo apt-get install mysql-server-5.6
+sudo apt-get install libmysqlclient-dev
+
+### elasticsearch ######################################################
+wget -O - http://packages.elasticsearch.org/GPG-KEY-elasticsearch | sudo apt-key add -
+sudo add-apt-repository 'deb http://packages.elasticsearch.org/elasticsearch/1.3/debian stable main'
+sudo apt-get update
+sudo apt-get install elasticsearch
+echo "cluster.name: $CLUSTER" | sudo tee -a /etc/elasticsearch/elasticsearch.yml
+echo "node.name: $NODE" | sudo tee -a /etc/elasticsearch/elasticsearch.yml
+sudo update-rc.d elasticsearch defaults 95 10
+sudo /etc/init.d/elasticsearch start
+
+### redis ##############################################################
+sudo apt-get install redis-server
+sudo cp /etc/redis/redis.conf /etc/redis/redis.conf.default
+echo "requirepass $NODE_REDIS_PASS" | sudo tee -a /etc/redis/redis.conf
+sudo service redis-server restart
+
+### mongodb ############################################################
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
+echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/mongodb.list
+sudo apt-get update
+sudo apt-get install -y mongodb-org
+
+### R ##################################################################
+sudo add-apt-repository "deb http://$R_CRAN_MIRROR/bin/linux/ubuntu trusty/"
+sudo gpg --keyserver keyserver.ubuntu.com --recv-key E084DAB9
+sudo gpg -a --export E084DAB9 | sudo apt-key add -
+sudo apt-get update
+sudo apt-get install r-base r-base-dev
+
+### R-shiny http://www.rstudio.com/products/shiny/download-server/ #####
+sudo apt-get install gdebi-core
+sudo su - -c "R -e \"install.packages('shiny', repos='http://cran.rstudio.com/')\""
+wget http://download3.rstudio.org/ubuntu-12.04/x86_64/shiny-server-1.2.3.368-amd64.deb
+sudo gdebi shiny-server-1.2.3.368-amd64.deb
+rm shiny-server-1.2.3.368-amd64.deb
+
+### geo ################################################################
+sudo add-apt-repository ppa:ubuntugis/ppa && sudo apt-get update
+sudo apt-get install gdal-bin libgdal-dev
+
+### sage math ##########################################################
+sudo apt-add-repository -y ppa:aims/sagemath && sudo apt-get update
+sudo apt-get install sagemath-upstream-binary
+
+### nodejs #############################################################
+sudo add-apt-repository ppa:chris-lea/node.js && sudo apt-get update
+sudo apt-get install nodejs -f
+sudo npm install -g npm
+sudo npm install -g express-generator
+sudo npm install express
+sudo npm install -g pm2
+
+### server #############################################################
+sudo add-apt-repository ppa:nginx/stable && sudo apt-get update
+sudo apt-get install nginx
+
+### git ################################################################
+sudo apt-get install git-core -f
+#git config --global user.name "$GIT_USER_NAME"
+#git config --global user.email "$GIT_USER_EMAIL"
+
+########################################################################
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get dist-upgrade
+sudo apt-get autoremove
+sudo apt-get autoclean
+
+sudo chown -R $USER:$USER $HOME
+
+echo "Installed:
+" > install.log
+echo "nodejs $(nodejs --version)" >> install.log 2>&1
+echo "npm version $(npm -v)" >> install.log 2>&1
+echo $(ogrinfo --version) >> install.log 2>&1
+echo $(R CMD config --version) >> install.log 2>&1
+mysql --version >> install.log 2>&1
+mongo --version >> install.log 2>&1
+mongod --version >> install.log 2>&1
+curl -XGET 'localhost:9200' >> install.log 2>&1
+echo "Running:
+$(sudo netstat -tulpn)
+" >> install.log 2>&1
+
+echo 'Done: see install.log'
+head -45 install.log
+
+########################################################################
+### prevent accidental override of used local configuration
+chmod 400 ~/install/config-1

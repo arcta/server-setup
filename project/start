@@ -1,0 +1,42 @@
+#!/bin/bash
+
+########################################################################
+### start project nodejs production app
+### parameters: $1 project subdirectory; $2 project port
+########################################################################
+. $HOME/.local.cnf
+
+if grep '/project$' <<<$(pwd) ; then
+    echo "Run ./start FROM the project location with NO arguments."
+else
+    sudo tee /etc/nginx/upstream/$1 <<EOF
+    upstream $1 {
+        server 127.0.0.1:$2;
+EOF
+
+for ip in ${CLUSTERIPS[*]}
+do
+    if [ "$ip" != "$NODEIP" ]; then
+        sudo tee -a /etc/nginx/upstream/$1 <<EOF
+        server $ip:$2;
+EOF
+    fi
+done
+
+sudo tee -a /etc/nginx/upstream/$1 <<EOF
+    }
+EOF
+
+    sudo tee /etc/nginx/location/$1 <<EOF
+        location /${NODE_DOC_ROOT}/$1 {
+            rewrite ^/${NODE_DOC_ROOT}/${1}/(.*) /\$1 break;
+            proxy_pass http://${1}/;
+            include proxy_params;
+        }
+EOF
+
+    pm2 start $HOME/$NODE_DOC_ROOT/${1}/app/app.js --name $1
+    sudo service nginx restart
+
+    echo "Done. Access with URL: ${DOMAIN}/${NODE_DOC_ROOT}/${1}/"
+fi

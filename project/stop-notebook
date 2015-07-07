@@ -1,0 +1,11 @@
+#!/bin/bash
+
+########################################################################
+### stop projects notebook web-interace
+########################################################################
+
+sudo rm /etc/nginx/upstream/notebook
+sudo rm /etc/nginx/location/notebook
+sudo service notebook stop
+sudo service nginx restart
+echo 'Done'

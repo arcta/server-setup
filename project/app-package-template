@@ -1,0 +1,54 @@
+#!/bin/bash
+
+########################################################################
+### start project nodejs production app
+### parameters: $1 project subdirectory
+########################################################################
+
+tee ~/$NODE_DOC_ROOT/$1/app/package.json <<EOF
+{
+    "name": "${1}",
+    "version": "0.0.0",
+    "author": {
+         "name": "${GIT_USER_NAME}",
+         "email": "${GIT_USER_EMAIL}"
+    },
+    "website":{
+         "url": "http://${NODEID}.${DOMAIN}"
+    },
+    "repository": {
+         "type": "git",
+         "url": "${GIT_REPO_URL}/${1}"
+    },
+    "private": true,
+    "scripts": {
+        "start": "node app.js"
+    },
+    "dependencies": {
+        "express": "~4.11.0",
+        "serve-favicon": "~2.2.0",
+        "serve-static": "*",
+        "body-parser": "~1.10.1",
+
+        "express-session": "*",
+        "errorhandler": "*",
+        "underscore": "*",
+        "compression": "*",
+
+        "node-minify": "*",
+        "glob":"4.2.1",
+        "node-uuid":"1.4.1",
+        "mkdirp":"*",
+
+        "mysql": "*",
+        "elasticsearch": "*",
+        "redis": "*",
+        "connect-redis": "^2.2.0",
+        "express-redis-cache": "*",
+
+        "debug": "~2.1.1"
+    }
+}
+EOF
+
+chmod 600 ~/$NODE_DOC_ROOT/$1/app/package.json

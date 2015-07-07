@@ -1,0 +1,35 @@
+#!/bin/bash
+
+########################################################################
+### release projects production web index
+########################################################################
+. $HOME/.local.cnf
+
+sudo tee /etc/nginx/upstream/info <<EOF
+    upstream info {
+        server 127.0.0.1:$NODE_PRODUCTION_PORT;
+EOF
+
+for ip in ${CLUSTERIPS[*]}
+do
+    if [ "$ip" != "$NODEIP" ]; then
+        sudo tee -a /etc/nginx/upstream/info <<EOF
+        server $ip:$NODE_PRODUCTION_PORT;
+EOF
+    fi
+done
+
+sudo tee -a /etc/nginx/upstream/info <<EOF
+    }
+EOF
+
+sudo tee /etc/nginx/location/info <<EOF
+        location / {
+            proxy_pass http://info/;
+            include proxy_params;
+        }
+EOF
+
+pm2 start $HOME/NODE_DOC_ROOT/info/app/app.js --name info
+sudo service nginx restart
+

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+########################################################################
+### stop projects notebook web-interace
+########################################################################
+
+sudo rm /etc/nginx/upstream/rstudio
+sudo rm /etc/nginx/location/rstudio
+sudo stop shiny-server
+sudo service nginx restart
+echo 'Done'

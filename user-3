@@ -1,0 +1,185 @@
+#!/bin/bash
+
+########################################################################
+### setup virtual environment and local user libraries
+########################################################################
+cd ~
+. .local.cnf
+
+mkdir .env
+virtualenv .env
+cd .env/bin
+source activate
+pip install --upgrade pip
+### easy_install -U distribute ### on Ubuntu 12 for numpy
+
+if [ -f requirements.txt ]; then
+    pip install -r requirements.txt
+
+else
+    pip install -U numpy
+    pip install -U scipy
+    pip install -U sympy
+    pip install -U matplotlib
+    pip install -U scikit-learn
+    pip install -U pyyaml nltk
+    pip install -U pandas
+    # pip install -U Pillow
+
+    pip install -U rpy2
+    pip install -U MySQL-python
+    pip install -U elasticsearch
+    pip install -U pymongo
+    pip install -U redis
+    pip install -U Cython
+
+    ### Flask
+    pip install -U uwsgi flask
+    pip install https://pypi.python.org/packages/source/F/Flask-KVSession/Flask-KVSession-0.4.tar.gz
+    pip install -U Flask-Mail
+    pip install -U uwsgi
+
+    ### geo-spacial
+    pip install -U pyproj
+    # pip install -U Fiona
+    # pip install -U Shapely
+    # pip install -U Rtree
+
+    ### communication with S3 and BigML
+    # pip install -U boto
+    # pip install -U bigml
+
+    pip install -U ipython[all]
+
+    pip freeze > requirements.txt
+fi
+
+cd ~
+. .local.cnf
+
+### http://ipython.org/ipython-doc/1/interactive/public_server.html
+ipython profile create nbserver
+sed -i "s/# c.IPKernelApp.pylab =/c.IPKernelApp.pylab =/1" \
+            ~/.ipython/profile_nbserver/ipython_notebook_config.py
+sed -i "s/c.IPKernelApp.pylab = None/c.IPKernelApp.pylab = 'inline'/1" \
+            ~/.ipython/profile_nbserver/ipython_notebook_config.py
+sed -i "s/# c.NotebookApp.ip =/c.NotebookApp.ip =/1" \
+            ~/.ipython/profile_nbserver/ipython_notebook_config.py
+sed -i "s/# c.NotebookApp.port = 8888/c.NotebookApp.port = ${NODE_NOTEBOOK_PORT}/1" \
+            ~/.ipython/profile_nbserver/ipython_notebook_config.py
+sed -i "s/# c.NotebookApp.open_browser =/c.NotebookApp.open_browser =/1" \
+            ~/.ipython/profile_nbserver/ipython_notebook_config.py
+sed -i "s/c.NotebookApp.open_browser = True/c.NotebookApp.open_browser = False/1" \
+            ~/.ipython/profile_nbserver/ipython_notebook_config.py
+sed -i "s/# c.NotebookApp.trust_xheaders =/c.NotebookApp.trust_xheaders =/1" \
+            ~/.ipython/profile_nbserver/ipython_notebook_config.py
+sed -i "s/c.NotebookApp.trust_xheaders = False/c.NotebookApp.trust_xheaders = True/1" \
+            ~/.ipython/profile_nbserver/ipython_notebook_config.py
+sed -i "s/# c.NotebookApp.base_project_url = '\/'/c.NotebookApp.base_project_url = '\/notebook\/'/1" \
+            ~/.ipython/profile_nbserver/ipython_notebook_config.py
+sed -i "s/# c.NotebookApp.base_url = '\/'/c.NotebookApp.base_url = '\/notebook\/'/1" \
+            ~/.ipython/profile_nbserver/ipython_notebook_config.py
+sed -i "s/# c.NotebookApp.webapp_settings = {}/c.NotebookApp.webapp_settings = {'static_url_prefix':'\/notebook\/static\/'}/1" \
+            ~/.ipython/profile_nbserver/ipython_notebook_config.py
+
+tee .datauser.sql <<EOF
+CREATE DATABASE ${NODE_DATABASE};
+CREATE USER '${NODE_DATAUSER}'@'localhost' IDENTIFIED BY '${NODE_MYSQL_PASS}';
+GRANT SELECT, UPDATE, INSERT ON ${NODE_DATABASE}.* TO '${NODE_DATAUSER}'@'localhost';
+FLUSH PRIVILEGES;
+EOF
+mysql -u root -p$NODE_MYSQL_ROOT_PASS mysql < .datauser.sql 2> /dev/null
+rm .datauser.sql
+
+echo "Installing R packages ..."
+R CMD BATCH install-packages.R
+echo "# local configuration used by R
+[client]
+user = $NODE_DATAUSER
+password = $NODE_MYSQL_PASS
+host = localhost
+database = $NODE_DATABASE
+" > .my.cnf
+
+echo "Setting mongo auth ..."
+echo "
+db.createUser({ user: 'root', pwd: '$NODE_MONGO_ROOT_PASS', roles: [ { role: 'userAdminAnyDatabase', db: 'admin' } ] });
+db = db.getSiblingDB('$NODE_DATABASE');
+db.createUser({ user: '$NODE_DATAUSER', pwd: '$NODE_MONGO_PASS', roles: [ { role: 'readWrite', db: '$NODE_DATABASE' } ] });
+" > mongo.js
+mongo admin mongo.js
+echo "auth = true" | sudo tee -a /etc/mongod.conf
+sudo service mongod restart
+rm mongo.js
+
+if ! [ -d node_modules ]; then
+    mkdir node_modules
+fi
+mkdir logs
+
+tee -a .local.cnf <<EOF
+### make sure you are in the proper env ################################
+. ${HOME}/.env/bin/activate
+########################################################################
+EOF
+
+
+### work directory #####################################################
+mkdir ~/$NODE_DOC_ROOT
+DIR=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)
+echo $DIR
+rsync -av ${DIR}/project ~/
+
+sudo chmod -R 600 ~/project
+sudo chmod 700 ~/project
+sudo chmod 700 ~/project/api
+sudo chmod 700 ~/project/info
+sudo chmod 700 ~/project/api/app
+sudo chmod 700 ~/project/api/app/static
+sudo chmod 700 ~/project/api/app/models
+sudo chmod 700 ~/project/info/app
+sudo chmod 700 ~/project/info/app/static
+sudo chmod 700 ~/project/info/app/static/js
+sudo chmod 700 ~/project/info/app/static/shared-assets
+sudo chmod 700 ~/project/info/app/static/shared-assets/css
+
+rsync -av ~/project/api ~/$NODE_DOC_ROOT/
+rsync -av ~/project/info ~/$NODE_DOC_ROOT/
+rsync -av ~/project/README.* ~/$NODE_DOC_ROOT/
+
+. ~/project/app-config-template api $NODE_API_PORT
+. ~/project/app-config-template info $NODE_PRODUCTION_PORT
+. ~/project/app-package-template api
+. ~/project/app-package-template info
+
+grep -rl NODE_DOC_ROOT ~/$NODE_DOC_ROOT/api | xargs sed -i "s/NODE_DOC_ROOT/$NODE_DOC_ROOT/g"
+grep -rl NODE_DOC_ROOT ~/$NODE_DOC_ROOT/info | xargs sed -i "s/NODE_DOC_ROOT/$NODE_DOC_ROOT/g"
+grep -rl DOMAIN ~/$NODE_DOC_ROOT/api | xargs sed -i "s/DOMAIN/$DOMAIN/g"
+grep -rl DOMAIN ~/$NODE_DOC_ROOT/info | xargs sed -i "s/DOMAIN/$DOMAIN/g"
+
+rsync -av ~/project/start-* ~/$NODE_DOC_ROOT/
+rsync -av ~/project/stop-* ~/$NODE_DOC_ROOT/
+cp ~/project/gitignore ~/$NODE_DOC_ROOT/api/.gitignore
+cp ~/project/gitignore ~/$NODE_DOC_ROOT/info/.gitignore
+cp ~/project/gitignore ~/$NODE_DOC_ROOT/.gitignore
+cp ~/project/user-guide.ipynb ~/$NODE_DOC_ROOT/user-guide.ipynb
+sed -i "s/NODE_DOC_ROOT/$NODE_DOC_ROOT/g" ~/$NODE_DOC_ROOT/user-guide.ipynb
+cp ~/project/favicon.png ~/$NODE_DOC_ROOT/api/app/static/favicon.png
+cp ~/project/favicon.png ~/$NODE_DOC_ROOT/info/app/static/favicon.png
+
+ln -s $HOME/node_modules ~/$NODE_DOC_ROOT/api/app/node_modules
+ln -s $HOME/node_modules ~/$NODE_DOC_ROOT/info/app/node_modules
+ln -s ~/$NODE_DOC_ROOT/info/app/static/shared-assets ~/$NODE_DOC_ROOT/api/app/static/shared-assets
+
+cd ~/$NODE_DOC_ROOT/api/app && npm install
+cd ~/$NODE_DOC_ROOT/info/app && npm install
+cd ~
+
+# if ! [ -d '.ssh' ]; then
+#     mkdir .ssh
+# fi
+# ssh-keygen -t rsa -C "$GIT_USER_EMAIL"
+# ssh-add ~/.ssh/id_rsa
+
+echo 'Done:'
+pip freeze
