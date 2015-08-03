@@ -33,6 +33,11 @@ EOF
             proxy_pass http://${1}/;
             include proxy_params;
         }
+
+        ### mitigating Jupyter unlimited access to anything ###
+        location /notebook/tree/${1}/app {
+            deny all;
+        }
 EOF
 
     pm2 start $HOME/$NODE_DOC_ROOT/${1}/app/app.js --name $1

@@ -28,6 +28,10 @@ sudo mkdir /etc/nginx/location
 
 sudo tee /etc/nginx/location/notebook <<EOF
         ### !!! IMPORTANT !!! ###
+        location /notebook/edit {
+            # allow 127.0.0.1;
+            deny all;
+        }
         location /notebook/files {
             # allow 192.168.1.0/24;
             deny all;

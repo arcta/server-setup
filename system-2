@@ -18,7 +18,7 @@ sudo pip install --upgrade virtualenv
 
 ### libraries ##########################################################
 sudo apt-get install libssl-dev gfortran make gcc gcc-multilib g++
-sudo apt-get install libpng-dev libfreetype6-dev libatlas-base-dev
+sudo apt-get install libpng-dev libfreetype6-dev libatlas-base-dev libffi-dev
 sudo apt-get install texlive-latex-base texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
 sudo apt-get install curl nmap imagemagick
 sudo apt-get install php5-cli php5-gd
