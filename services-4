@@ -27,18 +27,8 @@ EOF
 sudo mkdir /etc/nginx/location
 
 sudo tee /etc/nginx/location/notebook <<EOF
-        ### !!! IMPORTANT !!! ###
-        location /notebook/edit {
-            # allow 127.0.0.1;
-            deny all;
-        }
-        location /notebook/files {
-            # allow 192.168.1.0/24;
-            deny all;
-        }
         location /notebook {
-            # allow 192.168.1.0/24;
-            # deny all;
+            allow 192.168.1.0/24; deny all;
             proxy_pass http://notebook;
             # proxy_set_header Origin "";
             include proxy_params;
@@ -135,18 +125,18 @@ http {
     server {
         server_name $DOMAIN $NODE localhost;
 
-        # listen 80;
+        listen 80;
 
-        listen 443 ssl;
-        ssl_certificate /etc/nginx/ssl/${DOMAIN}.crt;
-        ssl_certificate_key /etc/nginx/ssl/${DOMAIN}.key;
+        # listen 443 ssl;
+        # ssl_certificate /etc/nginx/ssl/${DOMAIN}.crt;
+        # ssl_certificate_key /etc/nginx/ssl/${DOMAIN}.key;
 
         # include error.conf;
         include location/*;
     }
 }
 EOF
-#sudo service nginx restart
+sudo service nginx restart
 
 if [ -f /etc/shiny-server/shiny-server.conf.orig ]; then
     sudo mv /etc/shiny-server/shiny-server.conf /etc/shiny-server/shiny-server.conf.bk
@@ -189,7 +179,7 @@ case "\$1" in
     start)
         start-stop-daemon --start --quiet \
             --chuid ${USER}:${USER} --chdir=$HOME/$NODE_DOC_ROOT \
-            --exec ${HOME}/.env/bin/ipython notebook --profile=nbserver --no-browser \
+            --exec ${HOME}/.env/bin/jupyter notebook --no-browser \
                 || return 2
         ;;
     stop)
@@ -200,7 +190,7 @@ case "\$1" in
         start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --name notebook
         start-stop-daemon --start --quiet \
             --chuid ${USER}:${USER} --chdir=$HOME/$NODE_DOC_ROOT \
-            --exec ${HOME}/.env/bin/ipython notebook --profile=nbserver --no-browser
+            --exec ${HOME}/.env/bin/jupyter notebook --no-browser
         ;;
     *)
         echo "Usage: service notebook (start|stop|restart)" >&2
@@ -215,7 +205,7 @@ sudo chmod +x /etc/init.d/notebook
 sudo tee /etc/init/notebook.conf <<EOF
 description "iPython notebook sturtup persistence"
 start on runlevel [2345]
-stop on runlevel [!2345]
+stop on runlevel [06]
 
 respawn
 respawn limit 10 5
@@ -224,9 +214,10 @@ setuid $USER
 setgid $USER
 chdir $HOME/$NODE_DOC_ROOT
 
-exec $HOME/.env/bin/ipython notebook --profile=nbserver --no-browser
+exec $HOME/.env/bin/jupyter notebook --no-browser
 EOF
-sudo update-rc.d notebook defaults 99
+sudo update-rc.d notebook defaults 10 90
+sudo service notebook start
 
 sudo chown -R $USER:$USER $HOME
 echo 'Done: consider reboot the system'

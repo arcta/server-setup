@@ -19,9 +19,9 @@ def main():
             nb = nbf.read(open('%s.py' % path, 'r'), 'py')
             nbf.write(nb, open('%s.ipynb' % path, 'w'), 'ipynb')
         else:
-            print 'File %s.py does not exist.' % path
+            print('File %s.py does not exist.' % path)
     else:
-        print 'Usage: python py2nb.py path-to-file-arg'
+        print('Usage: python py2nb.py path-to-file-arg')
 
 
 if __name__ == '__main__':

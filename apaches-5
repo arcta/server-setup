@@ -4,12 +4,12 @@
 ### install apache distributed computing tools: spark & storm
 ########################################################################
 
-SCALA_V=2.11.7
-SPARK_V=1.4.0
-STORM_V=0.9.5
+SCALA_V=2.11.8
+SPARK_V=1.6.1
+STORM_V=1.0.0
 
-ZOOKEEPER_V=3.4.6
-ZEROMQ_V=4.0.5
+ZOOKEEPER_V=3.4.8
+ZEROMQ_V=4.1.4
 
 ########################################################################
 cd ~
@@ -19,10 +19,6 @@ cd ~
 sudo apt-get install libtool autoconf pkg-config
 sudo apt-get update
 sudo apt-get upgrade
-
-#sudo apt-get install virtualbox
-#sudo apt-get install vagrant
-#sudo apt-get install virtualbox-dkms
 
 sudo apt-get install maven
 sudo apt-get install tree
@@ -41,7 +37,7 @@ sudo tar xvf scala-$SCALA_V.tgz -C /usr/local/src/scala/
 
 curl -O http://d3kbcqa49mib13.cloudfront.net/spark-$SPARK_V.tgz
 tar xvf spark-$SPARK_V.tgz -C apache/
-ln -s $HOME/apache/spark-1.4.0 $HOME/apache/spark
+ln -s $HOME/apache/spark-$SPARK_V $HOME/apache/spark
 
 echo "
 ### master / slaves ####################################################
@@ -55,12 +51,12 @@ SCALA_HOME=/usr/local/src/scala/scala-$SCALA_V
 export PATH=\$SCALA_HOME/bin:\$PATH
 export PATH=\$STORM_HOME/bin:\$PATH
 export PYTHONPATH=$SPARK_HOME/python/:$PYTHONPATH
-#export PYTHONPATH=$SPARK_HOME/python/lib/py4j-0.8.2.1-src.zip:$PYTHONPATH
+
 " >> .local.cnf
 . .local.cnf
 
 cd $SPARK_HOME
-sbt/sbt assembly | tee -a "$HOME/spark.install.log" 2>&1
+sbt/sbt assembly | tee -a "$HOME/install-spark.log" 2>&1
 
 echo "localhost
 " > $SPARK_HOME/conf/slaves
@@ -85,6 +81,14 @@ SPARK_MASTER_WEBUI_PORT=8282
 ### install dependencies: zookeeper and zeromq
 cd ~
 
+git clone git://github.com/jedisct1/libsodium.git
+cd libsodium
+./autogen.sh 
+./configure && make check
+sudo make install
+sudo ldconfig
+cd ~
+
 curl -O http://mirror.reverse.net/pub/apache/zookeeper/zookeeper-$ZOOKEEPER_V/zookeeper-$ZOOKEEPER_V.tar.gz
 tar -zxvf zookeeper-$ZOOKEEPER_V.tar.gz
 mv zookeeper-$ZOOKEEPER_V apache/zookeeper-$ZOOKEEPER_V
@@ -107,7 +111,9 @@ sudo mv zeromq-$ZEROMQ_V /usr/local/zeromq-$ZEROMQ_V
 cd /usr/local/zeromq-$ZEROMQ_V
 ./configure
 make
-sudo make install | tee -a "$HOME/zeromq.install.log" 2>&1
+./autogen.sh
+./configure && make check
+sudo make install | tee -a "$HOME/install-zeromq.log" 2>&1
 
 ########################################################################
 ### install apache storm
@@ -158,5 +164,6 @@ do
 done
 
 cd ~
-#rm *.tar.gz
+rm -rf libsodium
+rm *.tar.gz
 rm *.tgz

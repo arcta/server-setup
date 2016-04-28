@@ -42,19 +42,32 @@ NODE_DATAUSER='betelgeuse'
 ########################################################################
 ### projects production deployment framework
 ########################################################################
-NODE_PRODUCTION_PORT=4001
+NODE_PRODUCTION_PORT=4010
 ### !!! starting from 4001 [production front-page] ---
-NODE_PROJECT_PORT=4001
+NODE_PROJECT_PORT=4011
 ### --- will increment with a new project release !!!
 
 NODE_RSTUDIO_PORT=3838
 NODE_NOTEBOOK_PORT=8888
-NODE_API_PORT=8080
+
+NODE_COMMON=(api info viz)
+
+NODE_PROJECT_API_PORT=8080
+NODE_PROJECT_VIZ_PORT=8282
+
+########################################################################
+### projects online
+########################################################################
+NODE_PROJECT_PORT=4010
+
 " > .local.cnf
 
 ########################################################################
 ### create and save local access credentials
 echo "
+########################################################################
+### local access credentials
+
 NODE_MYSQL_ROOT_PASS=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
 NODE_MYSQL_PASS=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1)
 
@@ -62,10 +75,25 @@ NODE_MONGO_ROOT_PASS=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head
 NODE_MONGO_PASS=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1)
 
 NODE_REDIS_PASS=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)
+
+NODE_CRYPTO_ALG=aes-256-cbc
+NODE_CRYPTO_KEY=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)
+
+NODE_COOKIE_KEY=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+NODE_COOKIE_AGE=$((60000 * 60 * 24))
+
+#TWITTER_KEY=
+#TWITTER_SECRET=
+#TWITTER_TOKEN=
+#TWITTER_TOKEN_SECRET=
 " >> .local.cnf
 
 ### add to bashrc ######################################################
 tee -a .bashrc <<EOF
+
+### use python3 as default python
+alias python=python3
+
 ### set node configuration vars
 . $HOME/.local.cnf
 EOF
@@ -83,10 +111,13 @@ echo "
 ### user library (ignore a warning if already exists):
 dir.create(Sys.getenv('R_LIBS_USER'), showWarnings = FALSE, recursive = TRUE)
 
+### shiny server ###
+install.packages(c('shiny','shinydashboard'), Sys.getenv('R_LIBS_USER'), repos='http://cran.rstudio.com/')
+
+### jupyter ###
+#install.packages(c('repr', 'IRkernel', 'IRdisplay'), repos = c('http://irkernel.github.io/', getOption('repos')))
+
 ### install packages:
 install.packages(c('RMySQL','jsonlite','ggplot2'), Sys.getenv('R_LIBS_USER'), repos = 'http://cran.r-project.org')
 install.packages(c('caret','rpart','party','randomForest','cluster'), Sys.getenv('R_LIBS_USER'), repos = 'http://cran.r-project.org')
-
-### shiny server ###
-install.packages('shiny', Sys.getenv('R_LIBS_USER'), repos='http://cran.rstudio.com/')
 " > install-packages.R

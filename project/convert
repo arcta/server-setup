@@ -1,0 +1,27 @@
+#!/bin/bash
+
+########################################################################
+### convert nb2md OR py2nb depend on file extension (ipynb|py)
+### parameters: $1 project subdirectory; $2 file name
+########################################################################
+. $HOME/.local.cnf
+
+if [ -f ~/${NODE_DOC_ROOT}/${1}/${2} ]; then
+    filename=$(basename "$2")
+    extension=$"${filename##*.}"
+
+    if [ "$extension" == "py" ]; then
+        echo "Converting Python to Notebook...$HOME/${NODE_DOC_ROOT}/${1}/${2}"
+        python $HOME/project/py2nb.py $HOME/${NODE_DOC_ROOT}/${1}/${2}
+
+    elif [ "$extension" == "ipynb" ]; then
+        echo "Converting Notebook to Markdown..."
+        cd ~/${NODE_DOC_ROOT}/${1}
+        jupyter nbconvert --to markdown ~/${NODE_DOC_ROOT}/${1}/${2}
+
+    else
+        echo "Only 2 options here: nb2md OR py2nb depend on file extension (ipynb|py)"
+    fi
+else
+    echo "Invalid argument: file ~/${NODE_DOC_ROOT}/${1}/${2} does not exist."
+fi

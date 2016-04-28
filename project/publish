@@ -1,0 +1,23 @@
+#!/bin/bash
+
+########################################################################
+### publish notebook to the web as static html + pdf
+### parameters: $1 project subdirectory $2 notebook name
+########################################################################
+. $HOME/.local.cnf
+
+NB="${2/.ipynb/}"
+if [ -f ~/${NODE_DOC_ROOT}/${1}/${NB}.ipynb ]; then
+    jupyter nbconvert --to html ~/${NODE_DOC_ROOT}/${1}/${NB}.ipynb
+    mv ${NB}.html ~/${NODE_DOC_ROOT}/${1}/app/static/${NB}.html
+
+    jupyter nbconvert --to latex --post PDF ~/${NODE_DOC_ROOT}/${1}/${NB}.ipynb
+    mv ${NB}.pdf ~/${NODE_DOC_ROOT}/${1}/app/static/pdf/${NB}.pdf
+    rm ${NB}.tex
+
+    echo "URL: ${DOMAIN}/${NODE_DOC_ROOT}/${1}/${NB}.html"
+    echo "URL: ${DOMAIN}/${NODE_DOC_ROOT}/${1}/pdf/${NB}.pdf"
+
+else
+    echo "Invalid argument: file ~/${NODE_DOC_ROOT}/${1}/${NB}.ipynb does not exist."
+fi

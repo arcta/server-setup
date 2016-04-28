@@ -2,11 +2,6 @@
 
 ########################################################################
 ### reload project nodejs production app
-### parameters: $1 project subdirectory; $2 project port
+### parameters: $1 project subdirectory
 ########################################################################
-
-if grep '/project$' <<<$(pwd) ; then
-    echo "Run ./reload FROM the project location with NO arguments."
-else
-    pm2 gracefulReload ${1}
-fi
+pm2 gracefulReload ${1}

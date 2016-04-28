@@ -2,46 +2,85 @@
 
 ########################################################################
 ### start project nodejs production app
-### parameters: $1 project subdirectory; $2 project port
+### parameters: $1 project subdirectory
+### start --test for test access on port 4444; production otherwise
 ########################################################################
 . $HOME/.local.cnf
 
-if grep '/project$' <<<$(pwd) ; then
-    echo "Run ./start FROM the project location with NO arguments."
+access="allow 192.168.1.0/24; deny all;"
+mode="TESTING"
+
+if [ "$1" == "--test" ]; then
+    label="$2"
+
+elif [ "$2" == "--test" ]; then
+    label="$1"
+
 else
+    label="$1"
+    access="allow all;"
+    mode="PRODUCTION"
+fi
+
+LABEL=${label^^}
+PORT="NODE_PROJECT_${LABEL//-/_}_PORT"
+port=${!PORT}
+
+if [ -z "$port" ]; then
+    echo "Make sure the app[ ${label} ] exists and enabled in .local.cnf"
+else
+    echo "Starting projects $label app in $mode mode on $port port ..."
     sudo tee /etc/nginx/upstream/$1 <<EOF
-    upstream $1 {
-        server 127.0.0.1:$2;
+    upstream $label {
+        server 127.0.0.1:$port;
 EOF
 
-for ip in ${CLUSTERIPS[*]}
-do
-    if [ "$ip" != "$NODEIP" ]; then
-        sudo tee -a /etc/nginx/upstream/$1 <<EOF
-        server $ip:$2;
+    for ip in ${CLUSTERIPS[*]}
+    do
+        if [ "$ip" != "$NODEIP" ]; then
+            sudo tee -a /etc/nginx/upstream/$label <<EOF
+        server $ip:$port;
 EOF
-    fi
-done
+        fi
+    done
 
-sudo tee -a /etc/nginx/upstream/$1 <<EOF
+    sudo tee -a /etc/nginx/upstream/$label <<EOF
     }
 EOF
+    if [[ " ${NODE_COMMON[*]} " == *" $label "* ]]; then
+        location=""
+    else
+        location="/${NODE_DOC_ROOT}"
+    fi
 
-    sudo tee /etc/nginx/location/$1 <<EOF
-        location /${NODE_DOC_ROOT}/$1 {
-            rewrite ^/${NODE_DOC_ROOT}/${1}/(.*) /\$1 break;
-            proxy_pass http://${1}/;
+    if [ 'info' == "$label" ]; then
+        sudo tee /etc/nginx/location/info <<EOF
+        location / {
+            ${access}
+            proxy_pass http://info/;
             include proxy_params;
         }
 
-        ### mitigating Jupyter unlimited access to anything ###
-        location /notebook/tree/${1}/app {
+        location /notebook/tree/info/app {
             deny all;
         }
 EOF
+    else
+        sudo tee /etc/nginx/location/$label <<EOF
+        location ${location}/${label} {
+            ${access}
+            rewrite ^${location}/${label}/(.*) /\$1 break;
+            proxy_pass http://${label}/;
+            include proxy_params;
+        }
+
+        location /notebook/tree/${label}/app {
+            deny all;
+        }
+EOF
+    fi
 
     pm2 start $HOME/$NODE_DOC_ROOT/${1}/app/app.js --name $1
     sudo service nginx restart
-
-    echo "Done. Access with URL: ${DOMAIN}/${NODE_DOC_ROOT}/${1}/"
+    echo "$label up!"
 fi

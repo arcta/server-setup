@@ -1,14 +1,13 @@
 
-# Data Science R&D Server on Linux Ubuntu 14.04 LTS
+# Data Science R&D on Linux Ubuntu 14.04 LTS
 
 #### Objectives:
 
-Intended for collaborative agile development (limited access)
-+ demo-applications and static web-presentations (public).
+R&D workstation/server for collaborative agile development (network access) + web-presentations and demo-apps (public).
 
 #### Stack:
 
-R + Python + Java
+R + Python ++
 
 #### Tools:
 
@@ -25,23 +24,28 @@ proxy locations behind NGINX Server
 
 #### Distributed Computing
 
-Apache Spark & Storm
+Apache Spark and Storm
 
 ## Installation
 
 #### Overview:
 
-The process here is broken into steps to accommodate customizations.
-Run from HOME directory as USER ( not as superuser )
-in the order of the file suffix number: 1, 2, 3, 4.
-On the fresh install of Ubuntu 14.04 this should be smooth and easy,
-for the installation over existing packages and configurations
-some extra work might have to be done in between the steps.
+The process here is broken into 4 steps to accommodate customizations.
+ATTENTION: if intended usage is more like a main desktop with personal and encrypted home directory, consider creating a separate user (see Permissions section). This installation scenario is for the SERVER user: do not encrypt /home/SERVER for some start-up scriprts to work. (You can encrypt LVM.) Following considers USER = SERVER.
+
+Install OS <a href="https://help.ubuntu.com/community/Installation/MinimalCD">(Ubuntu 14.04 LTS)</a>, 
+
+Install Desktop:
+<pre>
+sudo apt-get install ubuntu-desktop
+</pre>
+Then run scripts from /home/USER as USER in the order of the file suffix number: 1, 2, 3, 4.
+
+The process is smooth and easy for the fresh install of Ubuntu 14.04.
 
 #### Permissions:
 
-If runs on personal workstation it might be worth to set a dedicated user.
-This script consider the server is a home owner.
+If runs on personal workstation it might be worth to set a dedicated user. This script consider the server is a home owner.
 
 <pre>
 #!/bin/bash ### install/permissions-0
@@ -68,8 +72,7 @@ sudo rm /etc/sudoers.d/90-cloud-init-users
 
 #### Local configuration:
 
-Run config-1 script to create local configuration file. This file will be used
-by farther installations.
+Run config-1 script to create local configuration file. This file will be used by farther installations.
 
 <pre>
 #!/bin/bash ### install/config-1
@@ -81,19 +84,13 @@ by farther installations.
 
 This will create two files in HOME directory: .local.cnf and install-packages.R
 
-Find ~/.local.cnf file and edit configuration values as needed.(Naming
-convention NODE there is a sort of namespace to make sure we do not mess with
-standard Ubuntu environment.) Configuration file ~/.local.cnf will be executed
-by .bashrc
+Find ~/.local.cnf file and edit configuration values as needed.(Naming convention NODE there is a sort of namespace to make sure we do not mess with standard Ubuntu environment.) Configuration file ~/.local.cnf will be executed by .bashrc
 
-Find ~/install-packages.R file and add the additional R packages to be installed
-as needed. This script will be used by farther installation step; and can be
-used later on for batch install R packages.
+Find ~/install-packages.R file and add the additional R packages to be installed as needed. This script will be used by farther installation step; and can be used later on for batch install R packages.
 
 #### System dependencies:
 
-For R&D we consider the latest, preferably (not necessarily stable)
-versions using PPA. Run system-2 script to get it done.
+Our server focus is R&D, NOT PRODUCTION: the latest, preferably (not necessarily) stable versions. Run system-2 script to get it done.
 
 <pre>
 #!/bin/bash ### install/system-2
@@ -103,11 +100,9 @@ versions using PPA. Run system-2 script to get it done.
 ########################################################################
 </pre>
 
-It will prompt for password once a while and for confirmation: Y
-(ATTENTION: Y is not always a default option!)
+It will prompt for password once a while and for confirmation: Y (ATTENTION: Y is not always a default option!)
 
-config-1 will gray out (-x) to prevent accidental override of
-configuration which was used by systems-2.
+Notice: config-1 will gray out (-x) to prevent accidental override of configuration which was used by systems-2.
 
 #### Environment:
 
@@ -121,18 +116,13 @@ Run user-3 script to setup environment
 ########################################################################
 </pre>
 
-This will setup Python virtual environment and save requirements.txt.
-Virtual environment will be activated on user login.
+This will setup Python virtual environment and save requirements.txt; virtual environment will be activated on login, comment it out in .local.cnf, if prefer manual handling.
 
-The iPython Notebook server will be created and configured IN virtual
-environment. We are going to expose it to the network only, still,
-consider creating a password as described at http://ipython.org/ipython-
-doc/1/interactive/public_server.html#notebook-public-server.
-
+The iPython Notebook server will be created and configured IN virtual environment.
 
 #### Services:
 
-Run services-4 script to configure and start services.
+Run services-4 script to configure and start services. (See below on the details what gets done.)
 
 <pre>
 #!/bin/bash ### install/services-4
@@ -142,41 +132,78 @@ Run services-4 script to configure and start services.
 ########################################################################
 </pre>
 
-NGINX will be configured to serve locations:
+NGINX will be configured to serve locations: 
 
-1. the.domain.com/notebook proxy for iPython Notebook server;
-which will be network only
+1. the.domain.com/notebook proxy for iPython Notebook server; which should be limited access; password and ssl at least
 
-2. the.domain.com/rstudio/ proxy for R-Shiny server; public
+2. the.domain.com/rstudio/ proxy for R-Shiny server; we'll make it public
 
-3. the.domain.com/ & my.domain.com/projects/ proxy for nodeJS apps
-and static web-presentations (see deployment section)
+3. the.domain.com/ & my.domain.com/projects/ proxy for optional nodeJS demo-apps and static web-presentations (see deployment section)
 
-4. the.domain.com/api/ proxy for the common API (if any)
+4. the.domain.com/api/ proxy for the projects API (if any)
 
-Projects demos will be served independently by adding/removing location to the
-included locations in nginx.conf
+Projects demos will be served independently by adding/removing location to the included locations in nginx.conf
 
 <pre>
+user www-data;
+worker_processes 4;
+    
+pid /var/run/nginx.pid;
+    
+events {
+    worker_connections 768;
+}
+    
 http {
-    ...
-    include upstream/*;
-    ...
-    server {
-        server_name alpha.orion.net betelgeuse;
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 65;
+    types_hash_max_size 2048;
+    # server_tokens off;
 
+    # server_names_hash_bucket_size 64;
+    # server_name_in_redirect off;
+        
+    include /etc/nginx/mime.types;                                     
+    default_type application/octet-stream;
+    
+    # ssl_protocols TLSv1 TLSv1.1 TLSv1.2; # Dropping SSLv3, ref: POODLE
+    ssl_prefer_server_ciphers on;
+
+    access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log;
+
+    gzip on;
+    # include gzip configuration;
+        
+    large_client_header_buffers 4 16k;
+     
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        '' close;
+
+    include upstream/*;
+
+    # include /etc/nginx/conf.d/*.conf; ### shared common configurations ###
+    # include /etc/nginx/sites-enabled/*; ### if any other sites/vhosts ###
+
+    server {
+        server_name alpha.psi-sync.net betelgeuse localhost;
+
+        # listen 80;
+        ### VALID SSL SETIFICATE EXPECTED ###
         listen 443 ssl;
         ssl_certificate /etc/nginx/ssl/the.domain.com.crt;
         ssl_certificate_key /etc/nginx/ssl/the.domain.com.key;
 
+        # include error.conf; ### custom error pages ###
         include location/*;
     }
 }
 </pre>
 
-NGINX and Rstudio-Shiny Ubuntu distributions come with persistence configured by
-installation. For iPython notebook server we create one by adding
-/etc/init/notebook.conf and /etc/init.d/notebook executable:
+NGINX and Rstudio-Shiny Ubuntu distributions come with persistence configured by installation. For iPython notebook server we have to create one by adding /etc/init/notebook.conf and /etc/init.d/notebook executable:
 
 <pre>
 #! /bin/sh ### /etc/init.d/notebook
@@ -195,8 +222,7 @@ case "\$1" in
     start)
         start-stop-daemon --start --quiet \
             --chuid ${USER}:${USER} --chdir=$HOME/$NODE_DOC_ROOT \
-            --exec ${HOME}/.env/bin/ipython notebook \
-            --profile=nbserver --no-browser \
+            --exec ${HOME}/.env/bin/ipython notebook --profile=nbserver --no-browser \
                 || return 2
         ;;
     stop)
@@ -207,8 +233,7 @@ case "\$1" in
         start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --name notebook
         start-stop-daemon --start --quiet \
             --chuid ${USER}:${USER} --chdir=$HOME/$NODE_DOC_ROOT \
-            --exec ${HOME}/.env/bin/ipython notebook \
-            --profile=nbserver --no-browser
+            --exec ${HOME}/.env/bin/ipython notebook --profile=nbserver --no-browser
         ;;
     *)
         echo "Usage: service notebook (start|stop|restart)" >&2
@@ -219,8 +244,7 @@ esac
 :
 </pre>
 
-The above creates a service notebook, so, it can be used as usual:
-sudo service notebok (start|stop|restart)
+The above creates a service notebook, so, it can be used as usual: sudo service notebok (start|stop|restart)
 
 <pre>
 ### /etc/init/notebook.conf
@@ -244,110 +268,50 @@ Now we can add notebook upstart persistence:
 sudo update-rc.d notebook defaults 99
 </pre>
 
-For nodeJS persistence we optout PM2 module https://github.com/Unitech/pm2.
+For nodeJS persistence we optout PM2 module https://github.com/Unitech/pm2 vs. older and less capable 'forever'.
 
-Reboot the system to make sure services are upstart pesistent as expected:
-sudo reboot
+Reboot the system to make sure services are upstart pesistent as expected: sudo reboot
 
-If all is fine, the result of sudo netstat -tulpn after reboot will have all the
-following entries present:
+If all is fine, the result of sudo netstat -tulpn after reboot will have all the following entries present:
 
 <pre>
-tcp     127.0.0.1:27017         0.0.0.0:*           LISTEN      .../mongod
-tcp     127.0.0.1:3306          0.0.0.0:*           LISTEN      .../mysqld
-tcp     127.0.0.1:6379          0.0.0.0:*           LISTEN      .../redis-server
-tcp     127.0.0.1:8888          0.0.0.0:*           LISTEN      .../python
-tcp     0.0.0.0:3838            0.0.0.0:            LISTEN      .../shiny-server
-tcp     0.0.0.0:443             0.0.0.0:            LISTEN      .../nginx
-tcp     0.0.0.0:80              0.0.0.0:*           LISTEN      .../nginx
-tcp6    :::9200                 :::*                LISTEN      .../java
-tcp6    :::9300                 :::*                LISTEN      .../java
+tcp         127.0.0.1:27017         0.0.0.0:*           LISTEN      .../mongod     
+tcp         127.0.0.1:3306          0.0.0.0:*           LISTEN      .../mysqld     
+tcp         127.0.0.1:6379          0.0.0.0:*           LISTEN      .../redis-server
+tcp         127.0.0.1:8888          0.0.0.0:*           LISTEN      .../python     
+tcp         0.0.0.0:3838            0.0.0.0:            LISTEN      .../shiny-server
+tcp         0.0.0.0:443             0.0.0.0:            LISTEN      .../nginx      
+tcp         0.0.0.0:80              0.0.0.0:*           LISTEN      .../nginx      
+tcp6        :::9200                 :::*                LISTEN      .../java       
+tcp6        :::9300                 :::*                LISTEN      .../java       
 </pre>
 
-Now (192.168.1.0/24)/notebook should be online.
+Now the.domain.com/notebook should be online.
 
 #### Apache Tools
 
-Run apaches-5 script for basic installation of Apache Spark and Storm
-(ATTENTION! Check if the newer versions are available.)
-This script will not configure either, configuration depends on intended usage,
-we just get enough to start the service.
+Run apaches-5 script for basic installation of Apache Spark and Storm. (ATTENTION! Check if the newer versions are available.) This script will not configure either, configuration depends on intended usage, will set just enough to start the service.
 
 <pre>
-#!/bin/bash ### install apaches-5
+#!/bin/bash ### install/apaches-5
 
 ########################################################################
 ### install apache distributed computing tools: spark & storm
 ########################################################################
 
-SCALA_V=2.11.6
-SPARK_V=1.4.0
-STORM_V=0.9.5
+SCALA_V=2.11.8
+SPARK_V=1.6.1
+STORM_V=1.0.0
 
-ZOOKEEPER_V=3.4.6
-ZEROMQ_V=4.0.5
+ZOOKEEPER_V=3.4.8
+ZEROMQ_V=4.1.4
 </pre>
 
+## Project Development and Deployment
 
-## Deployment
+In HOME directory two folders are created: NODE_DOC_ROOT/ (projects/ by default) and project/. The first one is location where the projects will reside. The second contains a tiny deployment framework. See <a href="/notebook/notebooks/user-guide.ipynb">user-guide notebook</a> for the details.
 
-#### Overview:
 
-Now, when the server is up and running, lets start with projects. In HOME
-directory the folder NODE_DOC_ROOT/ has been created by user-3 script. There
-should be also project/ folder next to it. This folder contains some little
-extras, a tiny project deployment framework: not a lot of heavy lifting, but
-will save some time and bring some structure to the project development cycle.
+```python
 
-#### Initialize a new progect:
-
-<pre>
-. ~/project/create PROJECT_LABEL
-</pre>
-
-PROJECT_LABEL above stands for the project subdirectory name. Only /notebook and
-/rstudio locations are available as initial web interface. If intended, demo-
-apps/web-presentations production starts with local app/start script whenever
-ready.
-
-#### Initialize a project demo-app:
-
-The very basic app is initiated when project has been created. The initiation
-templates in ~/project folder (find: app-config-template, app-index-template,
-app-package-template, app.js) could be replaced with custom ones, they are just
-examples.
-
-#### Project production app start/stop/reload:
-
-<pre>
-. ~/NODE_DOC_ROOT/PROJECT_LABEL/app/(start|stop|reload)
-</pre>
-
-#### Project notebook publish:
-
-Whenever ready, the project notebook can be published as static html/pdf
-document to the project public web interface.
-<pre>
-. ~/NODE_DOC_ROOT/PROJECT_LABEL/publish NOTEBOOK_NAME
-</pre>
-
-#### Convert to/from notebook:
-
-To convert notebook to markdown OR python to notebook run:
-<pre>
-. ~/NODE_DOC_ROOT/PROJECT_LABEL/convert FILE_NAME
-</pre>
-
-#### Projects API:
-
-The very basic example is initiated in ~/NODE_DOC_ROOT/api. It is set as a
-project. The folder contains corresponding start/stop/reload scripts.
-
-#### Projects web-info (front) page:
-
-The same as for API, the basic example is initiated in ~/NODE_DOC_ROOT/info as a
-project.
-
-#### Version control:
-
-We suppose, the codebase resides in GIT.
+```

@@ -1,7 +1,0 @@
-#!/bin/bash
-
-########################################################################
-### stop projects production web index
-########################################################################
-. $HOME/.local.cnf
-. $HOME/project/stop info $NODE_PRODUCTION_PORT

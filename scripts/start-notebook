@@ -12,15 +12,10 @@ sudo tee /etc/nginx/upstream/notebook <<EOF
 EOF
 
 sudo tee /etc/nginx/location/notebook <<EOF
-        ### limit access to files pre-Jupyter only ###
-        location /notebook/files {
-            # allow 192.168.1.0/24;
-            deny all;
-        }
-
+        ### !!! IMPORTANT !!! ###
         location /notebook {
-            # allow 192.168.1.0/24;
-            # deny all;
+            allow 192.168.1.0/24;
+            deny all;
             proxy_pass http://notebook;
             # proxy_set_header Origin "";
             include proxy_params;

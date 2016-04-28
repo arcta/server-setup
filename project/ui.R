@@ -1,13 +1,22 @@
 
 library(shiny)
 
-# Define UI for application that draws a histogram
 shinyUI(fluidPage(
 
-  # Application title
-  titlePanel("Rsudio: Project Title"),
+  tags$head(
+    tags$style(HTML("
+      @import url(//fonts.googleapis.com/css?family=Orbitron);
 
-  # Sidebar with a slider input for the number of bins
+      h1, h2, h3 {
+        font-family: Orbitron, sans-seif;
+        color: #abc;
+      }
+
+    "))
+  ),
+
+  titlePanel("Rstudio:"),
+
   sidebarLayout(
     sidebarPanel(
       sliderInput("bins",
@@ -17,7 +26,6 @@ shinyUI(fluidPage(
                   value = 30)
     ),
 
-    # Show a plot of the generated distribution
     mainPanel(
       plotOutput("distPlot")
     )
