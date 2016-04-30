@@ -171,9 +171,6 @@ cp ~/project/gitignore ~/$NODE_DOC_ROOT/.gitignore
 rsync -av ${DIR}/app-static/* ~/$NODE_DOC_ROOT/info/app/static/
 cd ~/$NODE_DOC_ROOT/info/app && npm install
 cd ~
-./projects/start-apps
-./projects/start-notebook
-./projects/start-rstudio
 
 # if ! [ -d '.ssh' ]; then
 #     mkdir .ssh

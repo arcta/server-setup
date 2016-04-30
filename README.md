@@ -31,7 +31,7 @@ Apache Spark and Storm
 #### Overview:
 
 The process here is broken into 4 steps to accommodate customizations.
-ATTENTION: if intended usage is more like a main desktop with personal and encrypted home directory, consider creating a separate user (see Permissions section). This installation scenario is for the SERVER user: do not encrypt /home/SERVER for some start-up scriprts to work. (You can encrypt LVM.) Following considers USER = SERVER.
+ATTENTION: if intended usage is more like a main desktop with personal and encrypted home directory, consider creating a separate user for SERVER (see Permissions section) and login as SERVER. This installation scenario is for the SERVER user: do not encrypt /home/SERVER for some start-up scriprts to work. (You can encrypt LVM.) Following considers USER = SERVER.
 
 Install OS <a href="https://help.ubuntu.com/community/Installation/MinimalCD">(Ubuntu 14.04 LTS)</a>, 
 
@@ -104,12 +104,31 @@ It will prompt for password once a while and for confirmation: Y (ATTENTION: Y i
 
 Notice: config-1 will gray out (-x) to prevent accidental override of configuration which was used by systems-2.
 
-#### Environment:
+#### Apache Tools
 
-Run user-3 script to setup environment
+Run apaches-5 script for basic installation of Apache Spark and Storm. (ATTENTION! Check if the newer versions are available.) This script will not configure either, configuration depends on intended usage, will set just enough to start the service.
 
 <pre>
-#!/bin/bash ### install/user-3
+#!/bin/bash ### install/apaches-3
+
+########################################################################
+### install apache distributed computing tools: spark & storm
+########################################################################
+
+SCALA_V=2.11.8
+SPARK_V=1.6.1
+STORM_V=1.0.0
+
+ZOOKEEPER_V=3.4.8
+ZEROMQ_V=4.1.4
+</pre>
+
+#### Environment:
+
+Run user-4 script to setup environment
+
+<pre>
+#!/bin/bash ### install/user-4
 
 ########################################################################
 ### setup virtual environment and local user libraries
@@ -122,10 +141,10 @@ The iPython Notebook server will be created and configured IN virtual environmen
 
 #### Services:
 
-Run services-4 script to configure and start services. (See below on the details what gets done.)
+Run services-5 script to configure and start services. (See below on the details what gets done.)
 
 <pre>
-#!/bin/bash ### install/services-4
+#!/bin/bash ### install/services-5
 
 ########################################################################
 ### services configuration and persistence
@@ -286,26 +305,7 @@ tcp6        :::9200                 :::*                LISTEN      .../java
 tcp6        :::9300                 :::*                LISTEN      .../java       
 </pre>
 
-Now the.domain.com/notebook should be online.
-
-#### Apache Tools
-
-Run apaches-5 script for basic installation of Apache Spark and Storm. (ATTENTION! Check if the newer versions are available.) This script will not configure either, configuration depends on intended usage, will set just enough to start the service.
-
-<pre>
-#!/bin/bash ### install/apaches-5
-
-########################################################################
-### install apache distributed computing tools: spark & storm
-########################################################################
-
-SCALA_V=2.11.8
-SPARK_V=1.6.1
-STORM_V=1.0.0
-
-ZOOKEEPER_V=3.4.8
-ZEROMQ_V=4.1.4
-</pre>
+Now NODEIP/notebook DOMAIN/ and DOMAIN/rstudio should be online.
 
 ## Project Development and Deployment
 

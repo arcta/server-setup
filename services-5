@@ -217,7 +217,11 @@ chdir $HOME/$NODE_DOC_ROOT
 exec $HOME/.env/bin/jupyter notebook --no-browser
 EOF
 sudo update-rc.d notebook defaults 10 90
-sudo service notebook start
+
+. ~/projects/start-apps
+. ~/projects/start-notebook
+. ~/projects/start-rstudio
 
 sudo chown -R $USER:$USER $HOME
-echo 'Done: consider reboot the system'
+echo 'Done: rebooting the system...'
+sudo reboot

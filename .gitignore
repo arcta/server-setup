@@ -2,10 +2,8 @@
 ### ignore local configuration and framework
 ########################################################################
 
-app/node_modules
+app
 
-**/*.pyc
-**/.Rhistory
 **/.ipynb_checkpoints
 
 ########################################################################
