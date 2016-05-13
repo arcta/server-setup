@@ -26,15 +26,6 @@ app.use(favicon(path.join(__dirname, 'static/favicon.png')));
 app.use(static(path.join(__dirname, 'static')));
 app.use(compress());
 
-if ('test' == app.get('env')) {
-    port = config.NODE_PROJECTS_TESTER_PORT;
-    app.use(errorHandler());
-    app.set('view options', { pretty: true });
-
-} else {
-    app.set('view options', { pretty: false });
-}
-
 /**********************************************************************
  * ROUTES *
  **********************************************************************/

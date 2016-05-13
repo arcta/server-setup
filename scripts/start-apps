@@ -10,7 +10,7 @@ for label in ${LIST[*]}
 do
     if [ -d "${HOME}/${NODE_DOC_ROOT}/${label}" ]; then
         if [ -d "${HOME}/${NODE_DOC_ROOT}/${label}/app" ]; then
-            . $HOME/project/start $label $port
+            . $HOME/project/start $label
         fi
     fi
 done
