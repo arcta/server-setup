@@ -9,11 +9,11 @@
 NB="${2/.ipynb/}"
 if [ -f ~/${NODE_DOC_ROOT}/${1}/${NB}.ipynb ]; then
     jupyter nbconvert --to html ~/${NODE_DOC_ROOT}/${1}/${NB}.ipynb
-    mv ${NB}.html ~/${NODE_DOC_ROOT}/${1}/app/static/${NB}.html
+    mv ~/${NODE_DOC_ROOT}/${1}/${NB}.html ~/${NODE_DOC_ROOT}/${1}/app/static/${NB}.html
 
-    jupyter nbconvert --to latex --post PDF ~/${NODE_DOC_ROOT}/${1}/${NB}.ipynb
-    mv ${NB}.pdf ~/${NODE_DOC_ROOT}/${1}/app/static/pdf/${NB}.pdf
-    rm ${NB}.tex
+    jupyter nbconvert --to pdf ~/${NODE_DOC_ROOT}/${1}/${NB}.ipynb
+    mv ~/${NODE_DOC_ROOT}/${1}/${NB}.pdf ~/${NODE_DOC_ROOT}/${1}/app/static/pdf/${NB}.pdf
+    rm ~/${NODE_DOC_ROOT}/${1}/notebook.tex
 
     echo "URL: ${DOMAIN}/${NODE_DOC_ROOT}/${1}/${NB}.html"
     echo "URL: ${DOMAIN}/${NODE_DOC_ROOT}/${1}/pdf/${NB}.pdf"
