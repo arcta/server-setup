@@ -93,6 +93,13 @@ sudo apt-get install nodejs
 sudo add-apt-repository ppa:nginx/stable && sudo apt-get update
 sudo apt-get install nginx
 
+### docker #############################################################
+sudo apt-get install apt-transport-https ca-certificates
+sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
+echo "deb https://apt.dockerproject.org/repo ubuntu-trusty main" | sudo tee /etc/apt/sources.list.d/docker.list
+sudo apt-get install linux-image-extra-$(uname -r) linux-image-extra-virtual
+sudo apt-get install docker-engine
+
 ### git ################################################################
 sudo apt-get install git-core -f
 git config --global user.name "$GIT_USER_NAME"
@@ -125,5 +132,5 @@ echo 'Done: see install.log'
 head -45 install.log
 
 ########################################################################
-### prevent accidental override of used local configuration
+### do not override after use
 chmod 400 ~/install/config-1

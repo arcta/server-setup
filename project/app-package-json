@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ########################################################################
-### start project nodejs production app
+### start project nodejs app
 ### parameters: $1 project subdirectory
 ########################################################################
 
@@ -20,9 +20,15 @@ tee ~/$NODE_DOC_ROOT/$1/app/package.json <<EOF
          "type": "git",
          "url": "${GIT_REPO_URL}/${1}"
     },
+    "scripts": {
+        "deploy": "gcloud app deploy app.yaml"
+    },
     "private": true,
     "dependencies": {
-        "express": "^4.13.4",
+        "@google/cloud-debug": "^0.8.3",
+        "@google/cloud-trace": "^0.5.5",
+
+        "express": "^4.14.0",
         "serve-favicon": "*",
         "serve-static": "*",
         "express-session": "*",
@@ -38,6 +44,9 @@ tee ~/$NODE_DOC_ROOT/$1/app/package.json <<EOF
         "redis": "*",
         "connect-redis": "*",
         "express-redis-cache": "*"
+    },
+    "devDependencies": {
+        "nodejs-repo-tools": "git+https://github.com/GoogleCloudPlatform/nodejs-repo-tools.git#21daa823090c43fb667157c8b5b0c3b7f45a8357"
     }
 }
 EOF

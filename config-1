@@ -7,11 +7,11 @@ cd ~
 
 echo "#!/bin/bash
 
-GIT_USER_NAME='Repo Owner'
-GIT_USER_EMAIL='repo-owner@the.domain.com'
-GIT_REPO_URL='https://github.com/repo-owner'
+GIT_USER_NAME='<REPO>'
+GIT_USER_EMAIL='<EMAIL>'
+GIT_REPO_URL='<URL>'
 
-DOMAIN='the.domain.com'
+DOMAIN='<DOMAIN>'
 
 CLUSTER='orion'
 ### replicas used for load balancer (if any) ###########################
@@ -40,25 +40,15 @@ NODE_DATABASE='orion'
 NODE_DATAUSER='betelgeuse'
 
 ########################################################################
-### projects production deployment framework
+### projects local network deployment framework
 ########################################################################
-NODE_PRODUCTION_PORT=4010
-### !!! starting from 4001 [production front-page] ---
-NODE_PROJECT_PORT=4011
-### --- will increment with a new project release !!!
+
+NODE_INFO_PORT=4001
+### will increment with new project creation:
+NODE_PROJECT_PORT=4002
 
 NODE_RSTUDIO_PORT=3838
 NODE_NOTEBOOK_PORT=8888
-
-NODE_COMMON=(info)
-
-NODE_PROJECT_API_PORT=8080
-NODE_PROJECT_VIZ_PORT=8282
-
-########################################################################
-### projects online
-########################################################################
-NODE_PROJECT_PORT=4010
 
 " > .local.cnf
 
@@ -82,23 +72,36 @@ NODE_CRYPTO_KEY=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1
 NODE_COOKIE_KEY=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
 NODE_COOKIE_AGE=$((60000 * 60 * 24))
 
+########################################################################
+### external access credentials
+
 #TWITTER_KEY=
 #TWITTER_SECRET=
 #TWITTER_TOKEN=
 #TWITTER_TOKEN_SECRET=
+
+#GOOGLE_APPLICATION_CREDENTIALS=\"$HOME/.gcp/APP-default.json\"
+
 " >> .local.cnf
 
 ### add to bashrc ######################################################
 tee -a .bashrc <<EOF
 
 ### use python3 as default python
-alias python=python3
+#alias python=python3
 
 ### set node configuration vars
 . $HOME/.local.cnf
 EOF
 
 chmod 600 .local.cnf
+
+echo "
+########################################################################
+### dir | port | google-id ###  comment-out line to disable project  ###
+########################################################################
+" > .project.cnf
+mkdir .gcp
 
 ########################################################################
 ### add R packages to install

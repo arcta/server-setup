@@ -3,7 +3,10 @@
 
 #### Objectives:
 
-R&D workstation/server for collaborative agile development (network access) + web-presentations and demo-apps (public).
+R&D workstation/server for collaborative agile development (internal access) + web-presentations and demo-apps (local network or GCP deployment).
+
+This arrangement was designed to serve a small R&D team of software developers in data science with IoT stack;
+considering few physical nodes (which are our actual workstations + some commodity machines) with Ubuntu Linux operating system. VMs and containers are not our immediate concern, as the image is usually a part of our product, not the part of our toolbox. However, to support our laptops, and rising necessity for quick scallable roll-out of some projects into a cloud, now adding docker and google-cloud-sdk. GCP seems to be the best fit for our projects as it has all the components for data-heavy, machine-learning-enabled applications, as well as ad-hock data analysis.
 
 #### Stack:
 
@@ -11,7 +14,7 @@ R + Python ++
 
 #### Tools:
 
-R, GDAL, NumPy, SciPy, SymPy, Matplotlib, Scikit-Learn, Pandas, NLTK
+R, NumPy, SciPy, SymPy, Matplotlib, Scikit-Learn, Pandas, NLTK, GDAL
 
 #### Databases:
 
@@ -31,7 +34,7 @@ Apache Spark and Storm
 #### Overview:
 
 The process here is broken into 4 steps to accommodate customizations.
-ATTENTION: if intended usage is more like a main desktop with personal and encrypted home directory, consider creating a separate user for SERVER (see Permissions section) and login as SERVER. This installation scenario is for the SERVER user: do not encrypt /home/SERVER for some start-up scriprts to work. (You can encrypt LVM.) Following considers USER = SERVER.
+ATTENTION: if intended usage is more like a main desktop with personal and encrypted home directory, consider creating a separate user (see Permissions section). This installation scenario is for the SERVER user: do not encrypt /home/SERVER for some start-up scriprts to work. (You can encrypt LVM.) Following considers USER = SERVER.
 
 Install OS <a href="https://help.ubuntu.com/community/Installation/MinimalCD">(Ubuntu 14.04 LTS)</a>, 
 
@@ -65,7 +68,7 @@ sudo passwd $OWNER
 echo "$OWNER ALL=(ALL) PASSWD:ALL" | sudo /etc/sudoers.d/$OWNER
 
 ########################################################################
-### remove excess of power from aws-init-user
+### if on AWS: remove excess of power from aws-init-user
 sudo passwd ubuntu
 sudo rm /etc/sudoers.d/90-cloud-init-users
 </pre>
@@ -90,7 +93,7 @@ Find ~/install-packages.R file and add the additional R packages to be installed
 
 #### System dependencies:
 
-Our server focus is R&D, NOT PRODUCTION: the latest, preferably (not necessarily) stable versions. Run system-2 script to get it done.
+Main focus here is R&D: the latest, preferably (not necessarily) stable versions. Run system-2 script to get it done.
 
 <pre>
 #!/bin/bash ### install/system-2
@@ -104,47 +107,28 @@ It will prompt for password once a while and for confirmation: Y (ATTENTION: Y i
 
 Notice: config-1 will gray out (-x) to prevent accidental override of configuration which was used by systems-2.
 
-#### Apache Tools
-
-Run apaches-5 script for basic installation of Apache Spark and Storm. (ATTENTION! Check if the newer versions are available.) This script will not configure either, configuration depends on intended usage, will set just enough to start the service.
-
-<pre>
-#!/bin/bash ### install/apaches-3
-
-########################################################################
-### install apache distributed computing tools: spark & storm
-########################################################################
-
-SCALA_V=2.11.8
-SPARK_V=1.6.1
-STORM_V=1.0.0
-
-ZOOKEEPER_V=3.4.8
-ZEROMQ_V=4.1.4
-</pre>
-
 #### Environment:
 
-Run user-4 script to setup environment
+Run user-3 script to setup environment
 
 <pre>
-#!/bin/bash ### install/user-4
+#!/bin/bash ### install/user-3
 
 ########################################################################
 ### setup virtual environment and local user libraries
 ########################################################################
 </pre>
 
-This will setup Python virtual environment and save requirements.txt; virtual environment will be activated on login, comment it out in .local.cnf, if prefer manual handling.
+This will setup Python virtual environment and save requirements.txt; virtual environment will be activated on login, comment it out in .local.cnf, if prefer manual handling. ( Add packages to ~/user-pip-install.txt one per line. )
 
 The iPython Notebook server will be created and configured IN virtual environment.
 
 #### Services:
 
-Run services-5 script to configure and start services. (See below on the details what gets done.)
+Run services-4 script to configure and start services. (See below on the details what gets done.)
 
 <pre>
-#!/bin/bash ### install/services-5
+#!/bin/bash ### install/services-4
 
 ########################################################################
 ### services configuration and persistence
@@ -153,11 +137,11 @@ Run services-5 script to configure and start services. (See below on the details
 
 NGINX will be configured to serve locations: 
 
-1. the.domain.com/notebook proxy for iPython Notebook server; which should be limited access; password and ssl at least
+1. the.domain.com/notebook proxy for iPython Notebook server; limited network access
 
-2. the.domain.com/rstudio/ proxy for R-Shiny server; we'll make it public
+2. the.domain.com/rstudio/ proxy for R-Shiny server; public by default
 
-3. the.domain.com/ & my.domain.com/projects/ proxy for optional nodeJS demo-apps and static web-presentations (see deployment section)
+3. the.domain.com/ & my.domain.com/projects/ proxy for optional nodeJS demo-apps and static web-presentations (see deployment section) also public by default
 
 4. the.domain.com/api/ proxy for the projects API (if any)
 
@@ -305,11 +289,30 @@ tcp6        :::9200                 :::*                LISTEN      .../java
 tcp6        :::9300                 :::*                LISTEN      .../java       
 </pre>
 
-Now NODEIP/notebook DOMAIN/ and DOMAIN/rstudio should be online.
+Now the.domain.com/notebook should be online.
+
+#### Apache Tools
+
+Run apaches-5 script for basic installation of Apache Spark and Storm. (ATTENTION! Check if the newer versions are available.) This script will not configure either, configuration depends on intended usage, will set just enough to start the service.
+
+<pre>
+#!/bin/bash ### install/apaches-5
+
+########################################################################
+### install apache distributed computing tools: spark & storm
+########################################################################
+
+SCALA_V=2.11.8
+SPARK_V=1.6.1
+STORM_V=1.0.0
+
+ZOOKEEPER_V=3.4.8
+ZEROMQ_V=4.1.4
+</pre>
 
 ## Project Development and Deployment
 
-In HOME directory two folders are created: NODE_DOC_ROOT/ (projects/ by default) and project/. The first one is location where the projects will reside. The second contains a tiny deployment framework. See <a href="/notebook/notebooks/user-guide.ipynb">user-guide notebook</a> for the details.
+In HOME directory two folders are created: NODE_DOC_ROOT/ (projects/ by default) and project/. The first one is location where the projects will reside. The second contains a tiny local network deployment framework. See <a href="/notebook/notebooks/user-guide.ipynb">user-guide notebook</a> for the details. Each project intended to be in the cloud expected to have corresponding GCP-ID.
 
 
 ```python

@@ -22,12 +22,12 @@ else
     mode="PRODUCTION"
 fi
 
-LABEL=${label^^}
-PORT="NODE_PROJECT_${LABEL//-/_}_PORT"
-port=${!PORT}
 
-if [ -z "$port" ]; then
-    echo "Make sure the app[ ${label} ] exists and enabled in .local.cnf"
+port=$(grep -P "(?<!\d)\d{4}\s${label}(?!\d)" ~/.project.cnf | sed -e "s/\t${label}//")
+echo $port
+
+if [[ -z "$port" || $port = \#* ]] ; then
+    echo "${label} is disabled OR does not exists in .project.cnf"
 else
     echo "Starting projects $label app in $mode mode on $port port ..."
     sudo tee /etc/nginx/upstream/$1 <<EOF
@@ -80,7 +80,8 @@ EOF
 EOF
     fi
 
-    pm2 start $HOME/$NODE_DOC_ROOT/${1}/app/app.js --name $1
+    cd $HOME/$NODE_DOC_ROOT/${1}/app/
+    pm2 start app.js --name $1
     sudo service nginx restart
     echo "$label up!"
 fi

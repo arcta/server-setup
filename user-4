@@ -21,32 +21,36 @@ else
     pip install -U sympy
     pip install -U matplotlib
     pip install -U scikit-learn
-    pip install -U pyyaml nltk
     pip install -U pandas
-    pip install -U rpy2
+    pip install -U pyyaml nltk
+    pip install -U Cython
+    pip install -U jupyter
 
-    ### db-clients
-    # pip install -U MySQL-python
+    ### DBs
     pip install -U mysqlclient
     pip install -U elasticsearch
     pip install -U pymongo
     pip install -U redis
-    pip install -U Cython
 
-    ### Flask
+    ### utils
     pip install -U uwsgi
     pip install -U flask
-    pip install https://pypi.python.org/packages/source/F/Flask-KVSession/Flask-KVSession-0.4.tar.gz
-    pip install -U Flask-Mail
+    pip install -U boto
+    pip install -U oauth2
+    pip install -U oauth2client
+    pip install -U google-api-python-client
 
     ### geo-spacial
     pip install -U pyproj
 
-    ### communication with S3
-    pip install -U boto
-
-    pip install -U oauth2
-    pip install -U jupyter
+    ### user-favs
+    if [ -f ~/user-pip-install.txt ]; then
+        while IFS= read -r pack; do
+            if [ -n "$pack" ]; then
+                pip install -U "$pack"
+            fi
+        done < ~/user-pip-install.txt
+    fi
 
     pip freeze > requirements.txt
 fi
@@ -121,7 +125,7 @@ echo '
     "version": "0.0.0",
     "private": true,
     "dependencies": {
-        "express": "^4.13.4",
+        "express": "^4.14.0",
 
         "serve-favicon": "*",
         "serve-static": "*",
@@ -142,7 +146,7 @@ echo '
 }
 ' > package.json
 npm install
-sudo npm install -g pm2@0.12.3 # later comes with messed up permissions
+sudo npm install -g pm2
 sudo pm2 startup ubuntu -u $USER
 sudo chown -R $USER:$USER .pm2
 
