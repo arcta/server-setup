@@ -9,8 +9,8 @@ var express = require('express'),
 
     env = process.env,
 
-    config = require(env.HOME +'/project/utilities/app/config'),
-    logger = require(env.HOME +'/project/utilities/app/log'),
+    config = require(env.HOME +'/projects/utilities/app/config'),
+    logger = require(env.HOME +'/projects/utilities/app/log'),
 
     errorHandler = require('errorhandler'),
     compress = require('compression'),
@@ -18,7 +18,7 @@ var express = require('express'),
     favicon = require('serve-favicon'),
 
     project = __dirname.split('/')[4],
-    port = config.projectPort(__dirname);
+    port = config.projectPort(project);
 
 logger.log(__dirname, 'ALL');
 

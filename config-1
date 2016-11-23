@@ -105,6 +105,7 @@ mkdir .gcp
 
 ########################################################################
 ### add R packages to install
+packages=$(cat install-user-r.txt | awk 'NR>1{print PREV} {PREV=$0} END{printf("%s",$0)}' | tr '\n' ',' | sed "s/,/','/g")
 
 echo "
 ########################################################################
@@ -118,9 +119,8 @@ dir.create(Sys.getenv('R_LIBS_USER'), showWarnings = FALSE, recursive = TRUE)
 install.packages(c('shiny','shinydashboard'), Sys.getenv('R_LIBS_USER'), repos='http://cran.rstudio.com/')
 
 ### jupyter ###
-#install.packages(c('repr', 'IRkernel', 'IRdisplay'), repos = c('http://irkernel.github.io/', getOption('repos')))
+install.packages(c('rzmq','repr','IRkernel','IRdisplay'), repos = c(CRAN = 'http://irkernel.github.io/'), type = 'source')
 
 ### install packages:
-install.packages(c('RMySQL','jsonlite','ggplot2'), Sys.getenv('R_LIBS_USER'), repos = 'http://cran.r-project.org')
-install.packages(c('caret','rpart','party','randomForest','cluster'), Sys.getenv('R_LIBS_USER'), repos = 'http://cran.r-project.org')
+install.packages(c('${packages}'), Sys.getenv('R_LIBS_USER'), repos = 'http://cran.r-project.org')
 " > install-packages.R

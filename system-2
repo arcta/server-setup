@@ -29,14 +29,26 @@ sudo apt-get install oracle-java8-installer
 sudo apt-get install oracle-java8-set-default
 
 ### mysql ##############################################################
-wget http://dev.mysql.com/get/mysql-apt-config_0.3.2-1ubuntu14.04_all.deb
-sudo dpkg -i mysql-apt-config_0.3.2-1ubuntu14.04_all.deb
-sudo apt-get update
-#echo mysql-server-5.7 mysql-server/root_password password $NODE_MYSQL_ROOT_PASS | sudo debconf-set-selections
-#echo mysql-server-5.7 mysql-server/root_password_again password $NODE_MYSQL_ROOT_PASS | sudo debconf-set-selections
-sudo apt-get install mysql-server-5.7
+sudo apt-get install -y debconf-utils
+# debconf-get-selections | grep mysql
+echo "mysql-apt-config mysql-apt-config/unsupported-platform select abort" | /usr/bin/debconf-set-selections
+echo "mysql-apt-config mysql-apt-config/repo-codename   select trusty" | /usr/bin/debconf-set-selections
+echo "mysql-apt-config mysql-apt-config/select-tools select" | /usr/bin/debconf-set-selections
+echo "mysql-apt-config mysql-apt-config/repo-distro select ubuntu" | /usr/bin/debconf-set-selections
+echo "mysql-apt-config mysql-apt-config/select-server select mysql-5.7" | /usr/bin/debconf-set-selections
+echo "mysql-apt-config mysql-apt-config/select-product select Apply" | /usr/bin/debconf-set-selections
+echo "mysql-community-server mysql-community-server/root-pass password $NODE_MYSQL_ROOT_PASS" | /usr/bin/debconf-set-selections
+echo "mysql-community-server mysql-community-server/re-root-pass password $NODE_MYSQL_ROOT_PASS" | /usr/bin/debconf-set-selections
+echo "mysql-community-server mysql-community-server/remove-data-dir boolean false" | /usr/bin/debconf-set-selections
+echo "mysql-community-server mysql-community-server/data-dir note" | /usr/bin/debconf-set-selections
+ 
+export DEBIAN_FRONTEND=noninteractive
+wget http://dev.mysql.com/get/mysql-apt-config_0.6.0-1_all.deb
+dpkg --install mysql-apt-config_0.6.0-1_all.deb
+apt-get update
+apt-get --yes --force-yes install mysql-server-5.7
 sudo apt-get install libmysqlclient-dev
-rm mysql-apt-config_0.3.2-1ubuntu14.04_all.deb
+rm mysql-apt-config_0.6.0-1_all.deb
 
 ### elasticsearch ######################################################
 wget -qO - https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
@@ -68,6 +80,7 @@ sudo gpg --keyserver keyserver.ubuntu.com --recv-key E084DAB9
 sudo gpg -a --export E084DAB9 | sudo apt-key add -
 sudo apt-get update
 sudo apt-get install r-base r-base-dev
+sudo apt-get install libzmq3-dev python-zmq
 
 ### R-shiny http://www.rstudio.com/products/shiny/download-server/ #####
 sudo apt-get install gdebi-core

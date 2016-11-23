@@ -10,7 +10,7 @@ considering few physical nodes (which are our actual workstations + some commodi
 
 #### Stack:
 
-R + Python ++
+R + Python ++ ( Java, Scala, C/C++/C#, Fortran )
 
 #### Tools:
 
@@ -18,7 +18,7 @@ R, NumPy, SciPy, SymPy, Matplotlib, Scikit-Learn, Pandas, NLTK, GDAL
 
 #### Databases:
 
-ElasticSearch, MySQL, MongoDB
+ElasticSearch, MySQL, MongoDB ( PostgreSQL comes with Ubuntu )
 
 #### Services:
 

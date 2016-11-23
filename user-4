@@ -44,12 +44,12 @@ else
     pip install -U pyproj
 
     ### user-favs
-    if [ -f ~/user-pip-install.txt ]; then
+    if [ -f ~/install-user-pip.txt ]; then
         while IFS= read -r pack; do
             if [ -n "$pack" ]; then
                 pip install -U "$pack"
             fi
-        done < ~/user-pip-install.txt
+        done < ~/install-user-pip.txt
     fi
 
     pip freeze > requirements.txt
@@ -174,6 +174,15 @@ cp ~/project/gitignore ~/$NODE_DOC_ROOT/.gitignore
 . ~/project/create info
 rsync -av ${DIR}/app-static/* ~/$NODE_DOC_ROOT/info/app/static/
 cd ~/$NODE_DOC_ROOT/info/app && npm install
+
+### projects utilities
+#. ~/project/create utilities
+# cd ~/$NODE_DOC_ROOT
+# rm -rf utilities
+# git clone git@github.com:arcta/utilities.git
+# cd utilities
+# pip install -e .
+
 cd ~
 
 # if ! [ -d '.ssh' ]; then

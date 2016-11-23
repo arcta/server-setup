@@ -2,7 +2,7 @@
 
 ########################################################################
 ### publish notebook to the web as static html + pdf
-### parameters: $1 project subdirectory $2 notebook name
+### parameters: $1 project subdirectory; $2 notebook name
 ########################################################################
 . $HOME/.local.cnf
 
@@ -10,6 +10,7 @@ NB="${2/.ipynb/}"
 if [ -f ~/${NODE_DOC_ROOT}/${1}/${NB}.ipynb ]; then
     jupyter nbconvert --to html ~/${NODE_DOC_ROOT}/${1}/${NB}.ipynb
     mv ~/${NODE_DOC_ROOT}/${1}/${NB}.html ~/${NODE_DOC_ROOT}/${1}/app/static/${NB}.html
+    sed -i -r "s/https?:\/\/${NODEIP}:[0-9]{4}\///g" ~/${NODE_DOC_ROOT}/${1}/app/static/${NB}.html
 
     jupyter nbconvert --to pdf ~/${NODE_DOC_ROOT}/${1}/${NB}.ipynb
     mv ~/${NODE_DOC_ROOT}/${1}/${NB}.pdf ~/${NODE_DOC_ROOT}/${1}/app/static/pdf/${NB}.pdf
