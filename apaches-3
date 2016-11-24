@@ -5,11 +5,12 @@
 ########################################################################
 
 SCALA_V=2.11.8
-SPARK_V=1.6.1
-STORM_V=1.0.0
+SPARK_V=2.0.2
+HADOOP_V=2.7.0
+STORM_V=1.0.2
 
-ZOOKEEPER_V=3.4.8
-ZEROMQ_V=4.1.4
+ZOOKEEPER_V=3.4.9
+ZEROMQ_V=4.2.0
 
 ########################################################################
 cd ~
@@ -56,7 +57,13 @@ export PYTHONPATH=$SPARK_HOME/python/:$PYTHONPATH
 . .local.cnf
 
 cd $SPARK_HOME
-sbt/sbt assembly | tee -a "$HOME/install-spark.log" 2>&1
+cd $SPARK_HOME
+# Building With Hive and JDBC Support
+# See: http://spark.apache.org/docs/latest/building-spark.html
+# Maven is the official build tool recommended for packaging Spark, and is the build of reference.
+# But SBT is supported for day-to-day development since it can provide much faster iterative compilation.
+#./build/mvn -Pyarn -Phadoop-$HADOOP_V -Dhadoop.version=$HADOOP_V -Phive -Phive-thriftserver -DskipTests clean package | tee -a "$HOME/install-spark.log" 2>&1
+./build/sbt -Pyarn -Phadoop-$HADOOP_V -Dhadoop.version=$HADOOP_V -Phive -Phive-thriftserver -DskipTests clean package | tee -a "$HOME/install-spark.log" 2>&1
 
 echo "localhost
 " > $SPARK_HOME/conf/slaves
