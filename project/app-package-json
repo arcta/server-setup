@@ -9,44 +9,34 @@ tee ~/$NODE_DOC_ROOT/$1/app/package.json <<EOF
 {
     "name": "${1}",
     "version": "0.0.0",
+    "private": true,
     "author": {
          "name": "${GIT_USER_NAME}",
          "email": "${GIT_USER_EMAIL}"
-    },
-    "website":{
-         "url": "https://www.${DOMAIN}"
     },
     "repository": {
          "type": "git",
          "url": "${GIT_REPO_URL}/${1}"
     },
-    "scripts": {
-        "deploy": "gcloud app deploy app.yaml"
+    "website":{
+         "url": "https://www.${DOMAIN}"
     },
-    "private": true,
+    "scripts": {
+        "start": "node app.js",
+        "monitor": "nodemon app.js"
+    },
     "dependencies": {
-        "@google/cloud-debug": "^0.8.3",
-        "@google/cloud-trace": "^0.5.5",
+        "app-local": "file:../../lib/app-local",
 
         "express": "^4.14.0",
         "serve-favicon": "*",
-        "serve-static": "*",
-        "express-session": "*",
-        "errorhandler": "*",
-        "underscore": "*",
-        "compression": "*",
-        "body-parser": "*",
-        "intel": "*",
-
-        "mysql": "*",
-        "mongodb": "*",
-        "elasticsearch": "*",
-        "redis": "*",
-        "connect-redis": "*",
-        "express-redis-cache": "*"
+        "serve-static": "*"
     },
     "devDependencies": {
-        "nodejs-repo-tools": "git+https://github.com/GoogleCloudPlatform/nodejs-repo-tools.git#21daa823090c43fb667157c8b5b0c3b7f45a8357"
+
+    },
+    "engines": {
+        "node": ">=4.3.2"
     }
 }
 EOF

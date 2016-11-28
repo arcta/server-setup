@@ -1,0 +1,33 @@
+{
+    "name": "server-setup",
+    "version": "0.0.0",
+    "private": true,
+    "author": {
+         "name": "Alexandra Arce",
+         "email": "arctalex@gmail.com"
+    },
+    "repository": {
+         "type": "git",
+         "url": "https://bitbucket.org/arcta/server-setup"
+    },
+    "website":{
+         "url": "https://www.psi-sync.net"
+    },
+    "scripts": {
+        "start": "node app.js",
+        "monitor": "nodemon app.js"
+    },
+    "dependencies": {
+        "app-local": "file:/home/arctalex/projects/lib/app-local",
+
+        "express": "^4.14.0",
+        "serve-favicon": "*",
+        "serve-static": "*"
+    },
+    "devDependencies": {
+
+    },
+    "engines": {
+        "node": ">=4.3.2"
+    }
+}

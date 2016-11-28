@@ -3,10 +3,10 @@
 
 #### Objectives:
 
-R&D workstation/server for collaborative agile development (internal access) + web-presentations and demo-apps (local network or GCP deployment).
+R&D workstation/server for collaborative agile development ( internal access ) + web-presentations and demo-apps ( Google Cloud ).
 
 This arrangement was designed to serve a small R&D team of software developers in data science with IoT stack;
-considering few physical nodes (which are our actual workstations + some commodity machines) with Ubuntu Linux operating system. VMs and containers are not our immediate concern, as the image is usually a part of our product, not the part of our toolbox. However, to support our laptops, and rising necessity for quick scallable roll-out of some projects into a cloud, now adding docker and google-cloud-sdk. GCP seems to be the best fit for our projects as it has all the components for data-heavy, machine-learning-enabled applications, as well as ad-hock data analysis.
+considering few physical nodes (which are our actual workstations + some commodity machines) with Ubuntu Linux operating system. VMs and containers are not our immediate concern, the image is usually a part of our product, not the part of our toolbox. However, to support our laptops, and rising necessity for the quick scallable rollout of some projects into a cloud, now adding docker and google-cloud-sdk. GCP seems to be the best fit for our projects as it has all the components for data-heavy, machine-learning-enabled applications, as well as ad-hock data analysis.
 
 #### Stack:
 
@@ -22,7 +22,7 @@ ElasticSearch, MySQL, MongoDB ( PostgreSQL comes with Ubuntu )
 
 #### Services:
 
-iPython Notebook + Rstudio Shiny + NodeJS
+Jupyter Notebook + Rstudio Shiny + NodeJS
 proxy locations behind NGINX Server
 
 #### Distributed Computing
@@ -34,9 +34,9 @@ Apache Spark and Storm
 #### Overview:
 
 The process here is broken into 4 steps to accommodate customizations.
-ATTENTION: if intended usage is more like a main desktop with personal and encrypted home directory, consider creating a separate user (see Permissions section). This installation scenario is for the SERVER user: do not encrypt /home/SERVER for some start-up scriprts to work. (You can encrypt LVM.) Following considers USER = SERVER.
+ATTENTION: if intended usage is more like a main desktop with personal and encrypted home directory, consider creating a separate user (see Permissions section). This installation scenario is for the SERVER user: do not encrypt /home/SERVER for some start-up scriprts to work. Following considers USER = SERVER.
 
-Install OS <a href="https://help.ubuntu.com/community/Installation/MinimalCD">(Ubuntu 14.04 LTS)</a>, 
+Install OS <a href="https://help.ubuntu.com/community/Installation/MinimalCD">( Ubuntu 14.04 LTS )</a>, 
 
 Install Desktop:
 <pre>
@@ -46,7 +46,7 @@ Then run scripts from /home/USER as USER in the order of the file suffix number:
 
 The process is smooth and easy for the fresh install of Ubuntu 14.04.
 
-#### Permissions:
+#### Access Mode:
 
 If runs on personal workstation it might be worth to set a dedicated user. This script consider the server is a home owner.
 
@@ -75,7 +75,7 @@ sudo rm /etc/sudoers.d/90-cloud-init-users
 
 #### Local configuration:
 
-Run config-1 script to create local configuration file. This file will be used by farther installations.
+Run config-1 script to create local configuration file. This file will be used by installation. ( Add Python and R packages to ~/install-user-pip.txt and ~/install-user-r.txt for extended installation. )
 
 <pre>
 #!/bin/bash ### install/config-1
@@ -85,15 +85,13 @@ Run config-1 script to create local configuration file. This file will be used b
 ########################################################################
 </pre>
 
-This will create two files in HOME directory: .local.cnf and install-packages.R
+This will create configuratuion file in HOME directory: .local.cnf
 
-Find ~/.local.cnf file and edit configuration values as needed.(Naming convention NODE there is a sort of namespace to make sure we do not mess with standard Ubuntu environment.) Configuration file ~/.local.cnf will be executed by .bashrc
-
-Find ~/install-packages.R file and add the additional R packages to be installed as needed. This script will be used by farther installation step; and can be used later on for batch install R packages.
+Edit configuration values as needed. ( Configuration file ~/.local.cnf will be executed by .bashrc on user login. )
 
 #### System dependencies:
 
-Main focus here is R&D: the latest, preferably (not necessarily) stable versions. Run system-2 script to get it done.
+For R&D we consider the latest, preferably ( not necessarily ) stable versions. Run system-2 script to get it done.
 
 <pre>
 #!/bin/bash ### install/system-2
@@ -103,32 +101,76 @@ Main focus here is R&D: the latest, preferably (not necessarily) stable versions
 ########################################################################
 </pre>
 
-It will prompt for password once a while and for confirmation: Y (ATTENTION: Y is not always a default option!)
+Script is intentionally not silenced: we are building a workstation ( ATTENTION: Y is not always a default option! )
 
 Notice: config-1 will gray out (-x) to prevent accidental override of configuration which was used by systems-2.
 
-#### Environment:
+#### Apache Tools:
 
-Run user-3 script to setup environment
+Run apaches-3 script for basic installation of Apache Spark and Storm. ( ATTENTION! Check if the newer versions are available. ) This script will not configure either, configuration depends on intended usage, will set just enough to start the service.
 
 <pre>
-#!/bin/bash ### install/user-3
+#!/bin/bash ### install/apaches-3
+
+########################################################################
+### install apache distributed computing tools: spark & storm
+########################################################################
+
+SCALA_V=2.11.8
+SPARK_V=2.0.2
+HADOOP_V=2.7.0
+STORM_V=1.0.2
+
+ZOOKEEPER_V=3.4.9
+ZEROMQ_V=4.2.0
+</pre>
+
+#### Environment:
+
+Add packages to ~/user-pip-install.txt one per line, than run user-4 script to setup environment
+
+<pre>
+#!/bin/bash ### install/user-4
 
 ########################################################################
 ### setup virtual environment and local user libraries
 ########################################################################
 </pre>
 
-This will setup Python virtual environment and save requirements.txt; virtual environment will be activated on login, comment it out in .local.cnf, if prefer manual handling. ( Add packages to ~/user-pip-install.txt one per line. )
+This will setup Python virtual environment and save requirements.txt; virtual environment will be activated on login, comment it out in .local.cnf, if prefer manual handling.
 
-The iPython Notebook server will be created and configured IN virtual environment.
+Some projects are intended to become common utilities. ( See example <a href="https://github.com/arcta/viz">Interactive-Visualization</a>. )
+<pre>
+### initialize local package-library
+rsync -av ${DIR}/lib ~/$NODE_DOC_ROOT/
+cd ~/$NODE_DOC_ROOT/$label/app && npm install
+cd ~/$NODE_DOC_ROOT/lib && pip install -e .
+cd ~
+
+### projects which became common utilities
+# for label in info auth sandbox viz ; do
+#    ~/project/create $label
+#    cd ~/$NODE_DOC_ROOT
+#    rm -rf $label
+#    git clone git@bitbucket.org/arcta/$label.git
+#    if [ -d ~/$NODE_DOC_ROOT/$label/app ]; then
+#        cd ~/$NODE_DOC_ROOT/$label/app && npm install
+#    fi
+#    if [ -d ~/$NODE_DOC_ROOT/$label/$label ]; then
+#        cd ~/$NODE_DOC_ROOT/$label/$label && pip install -e .
+#    fi
+# done
+</pre>
+
+
+The Jupyter Notebook server will be created and configured in virtual environment.
 
 #### Services:
 
-Run services-4 script to configure and start services. (See below on the details what gets done.)
+Run services-5 script to configure and start services. ( See below on the details what gets done. )
 
 <pre>
-#!/bin/bash ### install/services-4
+#!/bin/bash ### install/services-5
 
 ########################################################################
 ### services configuration and persistence
@@ -137,54 +179,18 @@ Run services-4 script to configure and start services. (See below on the details
 
 NGINX will be configured to serve locations: 
 
-1. the.domain.com/notebook proxy for iPython Notebook server; limited network access
+1. the.domain.com/notebook proxy for Jupyter Notebook server; local-network access
 
 2. the.domain.com/rstudio/ proxy for R-Shiny server; public by default
 
 3. the.domain.com/ & my.domain.com/projects/ proxy for optional nodeJS demo-apps and static web-presentations (see deployment section) also public by default
 
-4. the.domain.com/api/ proxy for the projects API (if any)
-
 Projects demos will be served independently by adding/removing location to the included locations in nginx.conf
 
 <pre>
 user www-data;
-worker_processes 4;
-    
-pid /var/run/nginx.pid;
-    
-events {
-    worker_connections 768;
-}
     
 http {
-    sendfile on;
-    tcp_nopush on;
-    tcp_nodelay on;
-    keepalive_timeout 65;
-    types_hash_max_size 2048;
-    # server_tokens off;
-
-    # server_names_hash_bucket_size 64;
-    # server_name_in_redirect off;
-        
-    include /etc/nginx/mime.types;                                     
-    default_type application/octet-stream;
-    
-    # ssl_protocols TLSv1 TLSv1.1 TLSv1.2; # Dropping SSLv3, ref: POODLE
-    ssl_prefer_server_ciphers on;
-
-    access_log /var/log/nginx/access.log;
-    error_log /var/log/nginx/error.log;
-
-    gzip on;
-    # include gzip configuration;
-        
-    large_client_header_buffers 4 16k;
-     
-    map $http_upgrade $connection_upgrade {
-        default upgrade;
-        '' close;
 
     include upstream/*;
 
@@ -206,7 +212,7 @@ http {
 }
 </pre>
 
-NGINX and Rstudio-Shiny Ubuntu distributions come with persistence configured by installation. For iPython notebook server we have to create one by adding /etc/init/notebook.conf and /etc/init.d/notebook executable:
+To run Jupyter notebook as persistent server we have to add /etc/init/notebook.conf and /etc/init.d/notebook executable:
 
 <pre>
 #! /bin/sh ### /etc/init.d/notebook
@@ -271,11 +277,11 @@ Now we can add notebook upstart persistence:
 sudo update-rc.d notebook defaults 99
 </pre>
 
-For nodeJS persistence we optout PM2 module https://github.com/Unitech/pm2 vs. older and less capable 'forever'.
+For nodeJS persistence we optout PM2 module https://github.com/Unitech/pm2.
 
 Reboot the system to make sure services are upstart pesistent as expected: sudo reboot
 
-If all is fine, the result of sudo netstat -tulpn after reboot will have all the following entries present:
+If all is fine, the result of sudo netstat -tulpn after reboot should have all the following entries present:
 
 <pre>
 tcp         127.0.0.1:27017         0.0.0.0:*           LISTEN      .../mongod     
@@ -291,28 +297,22 @@ tcp6        :::9300                 :::*                LISTEN      .../java
 
 Now the.domain.com/notebook should be online.
 
-#### Apache Tools
-
-Run apaches-5 script for basic installation of Apache Spark and Storm. (ATTENTION! Check if the newer versions are available.) This script will not configure either, configuration depends on intended usage, will set just enough to start the service.
-
-<pre>
-#!/bin/bash ### install/apaches-5
-
-########################################################################
-### install apache distributed computing tools: spark & storm
-########################################################################
-
-SCALA_V=2.11.8
-SPARK_V=1.6.1
-STORM_V=1.0.0
-
-ZOOKEEPER_V=3.4.8
-ZEROMQ_V=4.1.4
-</pre>
-
 ## Project Development and Deployment
 
-In HOME directory two folders are created: NODE_DOC_ROOT/ (projects/ by default) and project/. The first one is location where the projects will reside. The second contains a tiny local network deployment framework. See <a href="/notebook/notebooks/user-guide.ipynb">user-guide notebook</a> for the details. Each project intended to be in the cloud expected to have corresponding GCP-ID.
+In HOME directory two folders are created: NODE_DOC_ROOT/ ( projects/ by default ) and project/. The first one is location where the projects will reside. The second contains a tiny local-network deployment framework. See <a href="/notebook/notebooks/user-guide.ipynb">user-guide notebook</a> for the details.
+
+Finally, as production deployment intended for Google Cloud Platform, install SDK
+
+<pre>
+#!/bin/bash ### install/gcp-6
+
+########################################################################
+### install GCP SDK: https://cloud.google.com/sdk/docs/#deb
+### at least one (may be empty) project should be in your GCP account
+########################################################################
+</pre>
+
+Projects intended to be in the cloud expected to have corresponding GCP-ID.
 
 
 ```python

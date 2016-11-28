@@ -4,7 +4,7 @@
 ### set up a new project as notebook + rstudio + nodejs environment
 ### args: $1 progect subdirectory name; $2 project google-id (if diff)
 ########################################################################
-. ~/.local.cnf
+source ~/.local.cnf
 
 if grep '^[0-9a-zA-Z_\-]*$' <<<$1 ; then
     if [ -d ~/$NODE_DOC_ROOT/$1 ]; then
@@ -17,7 +17,7 @@ if grep '^[0-9a-zA-Z_\-]*$' <<<$1 ; then
         ### init notebook ##############################################
         cp ~/project/README.ipynb ~/$NODE_DOC_ROOT/$1/README.ipynb
         sed -i "s/NODE_DOC_ROOT/${NODE_DOC_ROOT}/g" ~/$NODE_DOC_ROOT/$1/README.ipynb
-        sed -i "s/PROJECT_LABEL/${1}/g" ~/$NODE_DOC_ROOT/$1/README.ipynb
+        #sed -i "s/PROJECT_LABEL/${1}/g" ~/$NODE_DOC_ROOT/$1/README.ipynb
         sed -i "s/DOMAIN/${DOMAIN}/g" ~/$NODE_DOC_ROOT/$1/README.ipynb
 
         ### notebooks folder ###########################################
@@ -39,7 +39,9 @@ if grep '^[0-9a-zA-Z_\-]*$' <<<$1 ; then
 
         . ~/project/app-index-html $1
 
-        if [ 'info' != $1 ]; then
+        if [ 'info' == $1 ]; then
+            mkdir ~/$NODE_DOC_ROOT/info/app/static/shared-assets
+        else
             ln -s ~/$NODE_DOC_ROOT/info/app/static/shared-assets ~/$NODE_DOC_ROOT/$1/app/static/shared-assets
         fi
         cp ~/project/favicon.png ~/$NODE_DOC_ROOT/$1/app/static/favicon.png
@@ -50,12 +52,20 @@ if grep '^[0-9a-zA-Z_\-]*$' <<<$1 ; then
 
         ### add project deployment configuration #######################
         ((last = NODE_PROJECT_PORT + 0))
-        ((next = NODE_PROJECT_PORT + 1))
+        ((next = NODE_PROJECT_PORT + 2))
         sed -i "s/NODE_PROJECT_PORT=${last}/NODE_PROJECT_PORT=${next}/1" ~/.local.cnf
         echo -e "${last}\t${1}\t${2}" >> ~/.project.cnf
 
-        ls -l ~/$NODE_DOC_ROOT/$1
+        if ! [ -z "$2" ]; then
+            rsync -av ~/project/*.yaml ~/$NODE_DOC_ROOT/$1/app/
+            rsync -av ~/project/*file ~/$NODE_DOC_ROOT/$1/app/
+            rsync -av ~/project/gce ~/$NODE_DOC_ROOT/$1/app/
+            grep -rl PROJECT_GID ~/$NODE_DOC_ROOT/$1 | xargs sed -i "s/PROJECT_GID/${2}/g"
+        fi
 
+        grep -rl PROJECT_LABEL ~/$NODE_DOC_ROOT/$1 | xargs sed -i "s/PROJECT_LABEL/${1}/g"
+
+        ls -l ~/$NODE_DOC_ROOT/$1
         echo "Project location: ~/${NODE_DOC_ROOT}/${1}"
     fi
 else

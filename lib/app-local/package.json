@@ -1,0 +1,21 @@
+{
+    "name": "app-local",
+    "version": "0.0.0",
+    "author": {
+         "name": "Alexandra Arce",
+         "email": "arctalex@gmail.com"
+    },
+    "repository": {
+         "type": "git",
+         "url": "https://bitbucket.org/arcta/app-local"
+    },
+    "private": true,
+    "dependencies": {
+        "intel": "*",
+        "mysql": "*",
+        "mongodb": "*",
+        "elasticsearch": "*",
+        "redis": "*",
+        "socket.io": "*"
+    }
+}

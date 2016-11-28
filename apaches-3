@@ -14,7 +14,7 @@ ZEROMQ_V=4.2.0
 
 ########################################################################
 cd ~
-. .local.cnf
+source .local.cnf
 
 ### should be alredy there, just to make sure:
 sudo apt-get install libtool autoconf pkg-config
@@ -54,7 +54,7 @@ export PATH=\$STORM_HOME/bin:\$PATH
 export PYTHONPATH=$SPARK_HOME/python/:$PYTHONPATH
 
 " >> .local.cnf
-. .local.cnf
+source .local.cnf
 
 cd $SPARK_HOME
 cd $SPARK_HOME

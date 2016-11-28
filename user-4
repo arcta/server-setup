@@ -4,7 +4,7 @@
 ### setup virtual environment and local user libraries
 ########################################################################
 cd ~
-. .local.cnf
+source .local.cnf
 
 mkdir .env
 virtualenv -p python3 --no-site-packages .env
@@ -25,6 +25,7 @@ else
     pip install -U pyyaml nltk
     pip install -U Cython
     pip install -U jupyter
+    pip install -U ggplot
 
     ### DBs
     pip install -U mysqlclient
@@ -33,12 +34,14 @@ else
     pip install -U redis
 
     ### utils
+    pip install -U requests
+    pip install -U future
+    pip install -U psutil
     pip install -U uwsgi
     pip install -U flask
     pip install -U boto
     pip install -U oauth2
     pip install -U oauth2client
-    pip install -U google-api-python-client
 
     ### geo-spacial
     pip install -U pyproj
@@ -54,9 +57,7 @@ else
 
     pip freeze > requirements.txt
 fi
-
 cd ~
-. .local.cnf
 
 ### notebook-server configuration
 jupyter notebook --generate-config
@@ -116,11 +117,10 @@ rm mongo.js
 
 echo '
 {
-    "name": "node-setup",
+    "name": "apps-common",
     "description": "default node-modules",
     "repository": {
-        "type": "git",
-        "url": ""
+        "type": "git"
      },
     "version": "0.0.0",
     "private": true,
@@ -130,8 +130,6 @@ echo '
         "serve-favicon": "*",
         "serve-static": "*",
         "express-session": "*",
-        "errorhandler": "*",
-        "underscore": "*",
         "compression": "*",
         "body-parser": "*",
         "intel": "*",
@@ -158,7 +156,7 @@ tee -a .local.cnf <<EOF
 ########################################################################
 EOF
 
-. .local.cnf
+source ~/.local.cnf
 
 ### projects
 mkdir ~/$NODE_DOC_ROOT
@@ -171,19 +169,27 @@ rsync -av ${DIR}/*.html ~/$NODE_DOC_ROOT/
 rsync -av ${DIR}/*.md ~/$NODE_DOC_ROOT/
 
 cp ~/project/gitignore ~/$NODE_DOC_ROOT/.gitignore
-. ~/project/create info
-rsync -av ${DIR}/app-static/* ~/$NODE_DOC_ROOT/info/app/static/
-cd ~/$NODE_DOC_ROOT/info/app && npm install
 
-### projects utilities
-#. ~/project/create utilities
-# cd ~/$NODE_DOC_ROOT
-# rm -rf utilities
-# git clone git@github.com:arcta/utilities.git
-# cd utilities
-# pip install -e .
-
+### initialize local package-library
+rsync -av ${DIR}/lib ~/$NODE_DOC_ROOT/
+cd ~/$NODE_DOC_ROOT/$label/app-local && npm install
+cd ~/$NODE_DOC_ROOT/lib && pip install -e .
 cd ~
+
+### projects which became common utilities
+# for label in info auth sandbox viz ; do
+#    . ~/project/create $label
+#    cd ~/$NODE_DOC_ROOT
+#    rm -rf $label
+#    git clone git@bitbucket.org/arcta/$label.git
+#    if [ -d ~/$NODE_DOC_ROOT/$label/app ]; then
+#        cd ~/$NODE_DOC_ROOT/$label/app && npm install
+#    fi
+#    if [ -d ~/$NODE_DOC_ROOT/$label/$label ]; then
+#        cd ~/$NODE_DOC_ROOT/$label/$label && pip install -e .
+#    fi
+# done
+# cd ~
 
 # if ! [ -d '.ssh' ]; then
 #     mkdir .ssh

@@ -4,7 +4,7 @@
 ### publish notebook to the web as static html + pdf
 ### parameters: $1 project subdirectory; $2 notebook name
 ########################################################################
-. $HOME/.local.cnf
+source $HOME/.local.cnf
 
 NB="${2/.ipynb/}"
 if [ -f ~/${NODE_DOC_ROOT}/${1}/${NB}.ipynb ]; then

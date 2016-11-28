@@ -21,5 +21,4 @@ google-cloud-sdk-pubsub-emulator
 google-cloud-sdk-bigtable-emulator
 kubectl
 
-# Run gcloud init to get started:
 gcloud init

@@ -5,7 +5,7 @@
 ### parameters: $1 project subdirectory
 ### start --test for test access on port 4444; production otherwise
 ########################################################################
-. $HOME/.local.cnf
+source $HOME/.local.cnf
 
 access="allow 192.168.1.0/24; deny all;"
 mode="TESTING"

@@ -4,7 +4,7 @@
 ### servers confiuration and persistence
 ########################################################################
 cd ~
-. .local.cnf
+source .local.cnf
 
 ########################################################################
 ### create upstream loadbalancers

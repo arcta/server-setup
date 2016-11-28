@@ -39,13 +39,15 @@ NODE_DOC_ROOT='projects'
 NODE_DATABASE='orion'
 NODE_DATAUSER='betelgeuse'
 
+HOME=${HOME}
+
 ########################################################################
 ### projects local network deployment framework
 ########################################################################
 
-NODE_INFO_PORT=4001
+NODE_INFO_PORT=4000
 ### will increment with new project creation:
-NODE_PROJECT_PORT=4002
+NODE_PROJECT_PORT=4000
 
 NODE_RSTUDIO_PORT=3838
 NODE_NOTEBOOK_PORT=8888
@@ -80,7 +82,7 @@ NODE_COOKIE_AGE=$((60000 * 60 * 24))
 #TWITTER_TOKEN=
 #TWITTER_TOKEN_SECRET=
 
-#GOOGLE_APPLICATION_CREDENTIALS=\"$HOME/.gcp/APP-default.json\"
+#GOOGLE_APPLICATION_CREDENTIALS=$HOME/.gcp/APP-default.json
 
 " >> .local.cnf
 
@@ -91,7 +93,7 @@ tee -a .bashrc <<EOF
 #alias python=python3
 
 ### set node configuration vars
-. $HOME/.local.cnf
+source $HOME/.local.cnf
 EOF
 
 chmod 600 .local.cnf
@@ -99,8 +101,7 @@ chmod 600 .local.cnf
 echo "
 ########################################################################
 ### dir | port | google-id ###  comment-out line to disable project  ###
-########################################################################
-" > .project.cnf
+########################################################################" > .project.cnf
 mkdir .gcp
 
 ########################################################################

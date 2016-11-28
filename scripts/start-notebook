@@ -3,7 +3,7 @@
 ########################################################################
 ### start projects notebook web-interface
 ########################################################################
-. $HOME/.local.cnf
+source $HOME/.local.cnf
 
 sudo tee /etc/nginx/upstream/notebook <<EOF
     upstream notebook {

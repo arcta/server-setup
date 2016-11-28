@@ -3,7 +3,7 @@
 ########################################################################
 ### start all projects nodejs production
 ########################################################################
-. $HOME/.local.cnf
+source $HOME/.local.cnf
 
 LIST=$(ls ~/$NODE_DOC_ROOT)
 for label in ${LIST[*]}
