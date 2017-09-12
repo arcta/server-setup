@@ -1,0 +1,22 @@
+#!/bin/bash
+
+########################################################################
+### init project $1 node-app
+########################################################################
+source ~/.local.cnf
+
+if [ -d "$HOME/projects/$1" ]; then
+    cd ~/projects/$1
+    if [ "$GIT_REPO" = "bitbucket.org/arcta" ]; then
+        git clone git@${GIT_REPO//\//:}/project-node-app node-app
+    else
+        mkdir node-app
+        echo "
+This is ROOT directory of NodeJS App
+" > node-app/README
+        touch node-app/package.json
+    fi
+    cd -
+else
+    echo "Invalid arg: no such project: $1"
+fi

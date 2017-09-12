@@ -1,0 +1,10 @@
+#!/bin/bash
+
+########################################################################
+### stop projects rstudio server
+########################################################################
+sudo rm /etc/nginx/upstream/rstudio
+sudo rm /etc/nginx/location/rstudio
+sudo systemctl stop shiny-server
+sudo systemctl restart nginx
+sudo systemctl status shiny-server

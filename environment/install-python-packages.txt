@@ -1,0 +1,14 @@
+pygments
+pillow
+ggplot
+ipywidgets
+statsmodels
+jsonschema
+python-dateutil
+pandocfilters
+pyproj
+theano
+keras
+folium
+seaborn
+floyd-cli

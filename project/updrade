@@ -1,7 +1,0 @@
-#!/bin/bash
-
-########################################################################
-### we do it: we are R&D: upgrade all to the latest available version
-########################################################################
-pip install -U pip
-pip freeze --local | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U

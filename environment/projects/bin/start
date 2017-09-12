@@ -1,0 +1,21 @@
+#!/bin/bash
+
+########################################################################
+### start project node-app and python-api if exist
+### parameters: $1 project subdirectory
+########################################################################
+source ~/.local.cnf
+
+if [ -d "$HOME/projects/$1" ]; then
+    if [ -d "$HOME/projects/${1}/python-api" ]; then
+### project python-api #################################################
+        . ~/projects/bin/start-api $1
+    fi
+
+    if [ -d "$HOME/projects/${1}/node-app" ]; then
+### project node-app ###################################################
+        . ~/projects/bin/start-app $1
+    fi
+else
+    echo "Aborting: location projects/$1 does not exist"
+fi

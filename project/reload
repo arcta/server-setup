@@ -1,7 +1,0 @@
-#!/bin/bash
-
-########################################################################
-### reload project nodejs production app
-### parameters: $1 project subdirectory
-########################################################################
-pm2 gracefulReload ${1}

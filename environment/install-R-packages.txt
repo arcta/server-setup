@@ -1,0 +1,8 @@
+RMySQL
+jsonlite
+ggplot2
+caret
+rpart
+party
+randomForest
+cluster

@@ -1,0 +1,25 @@
+#!/bin/bash
+
+########################################################################
+### start projects rstudio server
+########################################################################
+source ~/.local.cnf
+
+sudo tee /etc/nginx/upstream/rstudio <<EOF
+        upstream rstudio {
+            server 127.0.0.1:${RSTUDIO_PORT};
+        }
+EOF
+
+sudo tee /etc/nginx/location/rstudio <<EOF
+        location /rstudio {
+            $ACCESS_RSTUDIO
+            rewrite ^/rstudio/(.*) /\$1 break;
+            proxy_pass http://rstudio/;
+            include proxy_params;
+        }
+EOF
+
+sudo systemctl start shiny-server
+sudo systemctl restart nginx
+sudo systemctl status shiny-server

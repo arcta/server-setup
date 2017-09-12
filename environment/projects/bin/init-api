@@ -1,0 +1,22 @@
+#!/bin/bash
+
+########################################################################
+### init project $1 python-api
+########################################################################
+source ~/.local.cnf
+
+if [ -d "$HOME/projects/$1" ]; then
+    cd ~/projects/$1
+    if [ "$GIT_REPO" = "bitbucket.org/arcta" ]; then
+        git clone git@${GIT_REPO//\//:}/project-python-api python-api
+    else
+        mkdir python-api
+        echo "
+This is ROOT directory of Python API
+" > python-api/README
+        touch python-api/app.py
+    fi
+    cd -
+else
+    echo "Invalid arg: no such project: $1"
+fi

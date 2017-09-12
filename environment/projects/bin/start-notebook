@@ -1,0 +1,25 @@
+#!/bin/bash
+
+########################################################################
+### start projects notebook server
+########################################################################
+source ~/.local.cnf
+
+sudo tee /etc/nginx/upstream/notebook <<EOF
+        upstream notebook {
+            server 127.0.0.1:${NOTEBOOK_PORT};
+        }
+EOF
+
+sudo tee /etc/nginx/location/notebook <<EOF
+        location /notebook {
+            $ACCESS_NOTEBOOK
+            proxy_pass http://notebook;
+            include proxy_params;
+            client_max_body_size 100M;
+        }
+EOF
+
+sudo systemctl start notebook
+sudo systemctl restart nginx
+sudo systemctl status notebook

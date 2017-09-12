@@ -1,8 +1,0 @@
-
-# Deployment to Google Cloud
-# https://cloud.google.com/nodejs/getting-started/tutorial-app
-runtime: nodejs
-env: flex
-
-skip_files:
- - ^node_modules$

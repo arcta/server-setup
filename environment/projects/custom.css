@@ -1,0 +1,103 @@
+@import url(//fonts.googleapis.com/css?family=Oswald:500);
+
+div#notebook {
+    background-color: #ffffff;
+    border: none;
+}
+div#notebook-container {
+    background-color: #ffffff;
+    border: none;
+    box-shadow:none !important;
+}
+
+div.output.output_scroll {
+    box-shadow: none;
+}
+::-webkit-scrollbar {
+    width: 12px;
+}
+::-webkit-scrollbar-track {
+    background: #f0f0f0;
+}
+::-webkit-scrollbar-thumb {
+    background: #dddddd;
+}
+::-webkit-scrollbar-thumb:window-inactive {
+    background: #dddddd;
+}
+
+body {
+    background-color: #ffffff;
+    font-family: 'Arial', sans-serif;
+}
+h1, h2, h3, h4, h5 {
+    font-family: 'Oswald', 'Arial Narrow' !important;
+    font-size: 1.5em;
+}
+a {
+    color: #264d73;
+}
+
+.toolbar_info, .list_container {
+    color: #cccccc;
+}
+
+div#maintoolbar, div#header {
+    display: block !important;
+}
+
+div.input_area {
+    border-radius: 0px;
+    border: none;
+}
+
+div.output_html {
+    font-family: sans-serif;
+}
+
+.rendered_html table, .rendered_html tr, .rendered_html th, .rendered_html td {
+    border: none;
+}
+.rendered_html tr:nth-child(odd) {
+    background: #f0f0f0;
+}
+.rendered_html th {
+    background: #ffffff; color: #000000;
+    text-align: right;
+}
+.rendered_html td {
+    text-align: right;
+}
+table.dataframe tr {
+    border: none
+}
+
+div.cell.selected {
+    border-radius: 0px;
+}
+div.cell.edit_mode {
+    border: none;
+}
+
+div.output_stderr {
+    background-color: #ffffff;
+}
+div.output_stderr pre {
+    color: #cccccc;
+}
+
+.input_area { font-family: monospace !important; }
+
+.cm-s-ipython div.CodeMirror-selected { background: #dddddd !important; }
+.cm-s-ipython .CodeMirror-gutters { background: #ffffff; border-right: 0px; }
+.cm-s-ipython .CodeMirror-cursor { border-left: thin solid green !important; }
+.cm-s-ipython span.cm-error { background: #ffffff; }
+
+div.input_prompt { color: #bbbbbb; }
+div.output_prompt { color: #ffffff; }
+
+div.text_cell_render, div.output_html { color: black; }
+
+div.output_stderr { background-color: #ffffff; }
+.cm-s-ipython.CodeMirror { background: #eeeeee; color: #000000; }
+.cm-s-ipython span.cm-comment { color: #888888; }
