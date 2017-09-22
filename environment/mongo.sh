@@ -4,7 +4,7 @@ echo "
 Setting mongo auth ..."
 echo "
 db.createUser({ user: 'root', pwd: '$MONGO_ROOT_PASS', roles: [ { role: 'userAdminAnyDatabase', db: 'admin' } ] });
-db = db.getSiblingDB('$DATABASE');
+db.auth('root','$MONGO_ROOT_PASS');
 db.createUser({ user: '$DATAUSER', pwd: '$MONGO_PASS', roles: [ { role: 'readWrite', db: '$DATABASE' } ] });
 " > mongo.js
 sudo service mongod restart

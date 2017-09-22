@@ -1,14 +1,17 @@
 #!/bin/bash
 
 ########################################################################
-### create local configuration and login credentials
+### environment variables
 ########################################################################
 echo "#!/bin/bash
 
 GIT_USER_NAME=
 GIT_USER_EMAIL=
 #GIT_REPO=bitbucket.org/arcta
-GIT_REPO=
+#GIT_PASS=
+
+#DOCKER_USER=docker
+#DOCKER_PASS=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1)
 
 #export DOMAIN=
 export PROTOCOL=http
@@ -25,8 +28,8 @@ export NODEIP=$(ifconfig | grep 'inet addr:'| grep -v '127.0.0.1' | cut -d: -f2 
 export MYSQL_HOST=127.0.0.1
 export MYSQL_PORT=3306
 
-export PSQL_HOST=127.0.0.1
-export PSQL_PORT=5433
+export POSTGRES_HOST=127.0.0.1
+export POSTGRES_PORT=5432
 
 export MONGO_HOST=127.0.0.1
 export MONGO_PORT=27017
@@ -36,6 +39,7 @@ export REDIS_PORT=6379
 
 export ES_HOST=localhost
 export ES_PORT=9200
+export ES_URI=\"${ES_HOST}:${ES_PORT}\"
 
 export FLINT_PORT=8282
 
@@ -64,7 +68,7 @@ ACCESS_PROJECT='allow all;'
 
 ########################################################################
 ### create access credentials
-echo "
+echo <<EOF >> ~/.local.cnf
 ########################################################################
 ### internal access credentials
 
@@ -73,12 +77,15 @@ NOTEBOOK_PASS=
 
 MYSQL_ROOT_PASS=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
 export MYSQL_PASS=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 24 | head -n 1)
+export MYSQL_URI="mysql://${DATAUSER}:${MYSQL_PASS}@${MYSQL_HOST}:${MYSQL_PORT}"
 
-#PSQL_ROOT_PASS=
-export PSQL_PASS=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1)
+#POSTGRES_ROOT_PASS=
+export POSTGRES_PASS=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1)
+export POSTGRES_URI="postgres://${DATAUSER}:${POSTGRES_PASS}@${POSTGRES_HOST}:${POSTGRES_PORT}"
 
 MONGO_ROOT_PASS=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
 export MONGO_PASS=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1)
+export MONGO_URI="mongodb://${DATAUSER}:${MONGO_PASS}@${MONGO_HOST}:${MONGO_PORT}"
 
 export REDIS_PASS=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)
 
@@ -94,7 +101,7 @@ export REDIS_PASS=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n
 
 #MEMCACHE_URL=
 
-" >> ~/.local.cnf
+EOF
 
 ### add to bashrc ######################################################
 tee -a ~/.bashrc <<EOF

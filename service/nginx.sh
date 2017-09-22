@@ -2,42 +2,8 @@
 
 echo "
 Setting Nginx sever ..."
-########################################################################
-### create upstream
 sudo mkdir /etc/nginx/upstream
-
-sudo tee /etc/nginx/upstream/notebook <<EOF
-    upstream notebook {
-        server 127.0.0.1:${NOTEBOOK_PORT};
-    }
-EOF
-
-sudo tee /etc/nginx/upstream/rstudio <<EOF
-    upstream rstudio {
-        server 127.0.0.1:${RSTUDIO_PORT};
-    }
-EOF
-
-########################################################################
-### create locations
 sudo mkdir /etc/nginx/location
-
-sudo tee /etc/nginx/location/notebook <<EOF
-        location /notebook {
-            $ACCESS_NOTEBOOK
-            proxy_pass http://notebook;
-            include proxy_params;
-        }
-EOF
-
-sudo tee /etc/nginx/location/rstudio <<EOF
-        location /rstudio {
-            $ACCESS_RSTUDIO
-            rewrite ^/rstudio/(.*) /\$1 break;
-            proxy_pass http://rstudio/;
-            include proxy_params;
-        }
-EOF
 
 if [ -f /etc/nginx/proxy_params ] && ! [ -f /etc/nginx/proxy_params.orig ]; then
     sudo mv /etc/nginx/proxy_params /etc/nginx/proxy_params.orig
@@ -118,13 +84,10 @@ EOF
 sudo rm /etc/nginx/sites-enabled/*
 sudo tee /etc/nginx/sites-available/dev <<EOF
     server {
-        #reai_ip_header X-Forwarded-For;
-        #set_real_ip_from 127.0.0.1;
-
         server_name $NODEIP localhost;
 
         listen 80;
-        #listen [::]:80;
+        listen [::]:80;
 
         include location/*;
     }

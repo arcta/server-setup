@@ -1,0 +1,16 @@
+#!/bin/bash
+
+echo "
+Creating projects-mongo image ..."
+docker run -v /data/mongo:/data/db -p 27017:27017 -h 127.0.0.1 --name projects-mongo -d -t mongo:latest --auth
+echo "
+db.createUser({ user: 'root', pwd: '$MONGO_ROOT_PASS', roles: [ { role: 'userAdminAnyDatabase', db: 'admin' } ] });
+db.auth('root','$MONGO_ROOT_PASS');
+db.createUser({ user: '$DATAUSER', pwd: '$MONGO_PASS', roles: [ { role: 'readWrite', db: '$DATABASE' } ] });
+" > mongo.js
+docker cp mongo.js projects-mongo:/mongo.js
+sleep 5s
+docker exec -it projects-mongo mongo admin mongo.js
+docker commit -m "projects-mongo image" `docker ps -l -q` projects-mongo:latest
+rm mongo.js
+docker images

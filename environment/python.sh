@@ -40,7 +40,7 @@ else
 
     ### install user-list
     if [ -f $DIR/install-python-packages.txt ]; then
-		nano $DIR/install-python-packages.txt
+        nano $DIR/install-python-packages.txt
         while IFS= read -r pack; do
             if [ -n "$pack" ]; then
                 pip install -U "$pack"
