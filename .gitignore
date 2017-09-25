@@ -3,8 +3,7 @@
 ########################################################################
 
 README.ipynb
-app/node_modules
-app/npm-debug.log
+node-app
 
 **/*.pyc
 **/__pycache__
@@ -17,8 +16,4 @@ app/npm-debug.log
 # python egg metadata, regenerated from source files by setuptools
 /*.egg-info
 
-
-########################################################################
-### ignore anything below
-########################################################################
 

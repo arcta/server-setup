@@ -34,6 +34,20 @@ if [ -f "$CONFIG" ]; then
     echo "c.NotebookApp.tornado_settings = {'static_url_prefix':'/notebook/static/'}"
 fi
 
+### latex ##############################################################
+rm -rf /usr/local/texlive/*
+rm -rf ~/.texlive2017
+wget http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz
+tar -xzf install-tl-unx.tar.gz
+rm install-tl-unx.tar.gz
+cd install-tl-20170925
+./install-tl
+cd -
+rm -rf install-tl-20170925
+path=$(ll /usr/local/texlive/2017/bin)
+arr=($path)
+PATH=/usr/local/texlive/2017/bin/${arr[-1]}:$PATH
+
 ### kernels ############################################################
 if [ "$(which scala)" != "" ]; then
     git clone https://github.com/alexarchambault/jupyter-scala.git

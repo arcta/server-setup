@@ -18,18 +18,17 @@ if [ -d 'projects' ]; then
     fi
 
     if [ "$GIT_REPO" = "bitbucket.org/arcta" ]; then
-        rm -rf ~/projects/bin
         git clone git@${GIT_REPO//\//:}/project-bin ~/projects/bin
 
-        rm -rf ~/projects/lib
         git clone git@${GIT_REPO//\//:}/project-lib ~/projects/lib
         pip install -e ~/projects/lib
 
-        rm -rf ~/projects/node-app
         git clone git@${GIT_REPO//\//:}/project-node-app ~/projects/node-app
 
-        rm -rf ~/projects/python-api
         git clone git@${GIT_REPO//\//:}/project-python-api ~/projects/python-api
+    else
+        mkdir ~/projects/bin
+        mkdir ~/projects/lib
     fi
 
     chown -R $USER:$USER ~/projects
